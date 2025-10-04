@@ -24,7 +24,8 @@ class CalendarTools:
         filter_params: Optional[str] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
-        limit: int = 50
+        limit: int = 50,
+        sections: Optional[str] = None,
     ) -> str:
         """
         Get calendar events from Bitrix24.
@@ -34,6 +35,7 @@ class CalendarTools:
             date_from: Start date for events (YYYY-MM-DD format)
             date_to: End date for events (YYYY-MM-DD format)
             limit: Maximum number of events to return (default: 50)
+            sections: JSON string or comma-separated list of calendar section IDs
         
         Returns:
             JSON string with events data
@@ -41,6 +43,50 @@ class CalendarTools:
         try:
             # Parse parameters
             filter_dict = json.loads(filter_params) if filter_params else {}
+
+            def _normalize_sections(raw_value):
+                if raw_value is None:
+                    return []
+                if isinstance(raw_value, list):
+                    return raw_value
+                if isinstance(raw_value, (int, float)):
+                    return [int(raw_value)]
+                if isinstance(raw_value, str):
+                    try:
+                        parsed_value = json.loads(raw_value)
+                        if isinstance(parsed_value, list):
+                            return parsed_value
+                        return [parsed_value]
+                    except json.JSONDecodeError:
+                        items = [item.strip() for item in raw_value.split(",") if item.strip()]
+                        normalized_items = []
+                        for item in items:
+                            if item.isdigit():
+                                normalized_items.append(int(item))
+                            else:
+                                normalized_items.append(item)
+                        return normalized_items
+                return []
+
+            # Merge section filters from filter_params and explicit sections argument
+            section_values = []
+            if "section" in filter_dict:
+                section_values.extend(_normalize_sections(filter_dict["section"]))
+            if sections:
+                section_values.extend(_normalize_sections(sections))
+            if section_values:
+                # Deduplicate while preserving order
+                seen = set()
+                normalized_sections = []
+                for section in section_values:
+                    key = str(section)
+                    if key not in seen:
+                        seen.add(key)
+                        normalized_sections.append(section)
+                filter_dict["section"] = normalized_sections
+            elif "section" in filter_dict:
+                # Remove invalid section payload to avoid API errors
+                filter_dict.pop("section")
             
             # Add date filters if provided
             if date_from:
@@ -167,22 +213,49 @@ class CalendarTools:
             })
     
     @beartype
-    async def get_calendar_list(self) -> str:
+    async def get_calendar_list(self, filter_params: Optional[str] = None) -> str:
         """
         Get list of available calendars in Bitrix24.
-        
+
+        Args:
+            filter_params: JSON string with request parameters (e.g., '{"type": "user", "ownerId": 9}')
+
         Returns:
             JSON string with calendars list
         """
         try:
-            # Get calendars
-            calendars = await self.client.client.call("calendar.section.get")
-            
+            params = json.loads(filter_params) if filter_params else {}
+
+            if "TYPE" in params and "type" not in params:
+                params["type"] = params.pop("TYPE")
+
+            if "OWNER_ID" in params and "ownerId" not in params:
+                params["ownerId"] = params.pop("OWNER_ID")
+            elif "owner_id" in params and "ownerId" not in params:
+                params["ownerId"] = params.pop("owner_id")
+
+            if "type" not in params:
+                params["type"] = "user"
+
+            if "ownerId" in params:
+                try:
+                    params["ownerId"] = int(params["ownerId"])
+                except (TypeError, ValueError):
+                    pass
+
+            calendars = await self.client.client.call("calendar.section.get", params)
+
             return json.dumps({
                 "success": True,
                 "calendars": calendars[0] if calendars else []
             }, ensure_ascii=False, indent=2)
-            
+
+        except json.JSONDecodeError as exc:
+            logger.error(f"Invalid filter_params for calendar list: {exc}")
+            return json.dumps({
+                "success": False,
+                "error": f"Invalid filter_params JSON: {exc}"
+            })
         except Exception as e:
             logger.error(f"Error getting calendar list: {e}")
             return json.dumps({

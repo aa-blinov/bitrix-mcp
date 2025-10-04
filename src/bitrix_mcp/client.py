@@ -2,7 +2,7 @@
 
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Optional, Union
 
 from beartype import beartype
 from fast_bitrix24 import BitrixAsync
@@ -10,6 +10,9 @@ from fast_bitrix24 import BitrixAsync
 from .config import BitrixConfig
 
 logger = logging.getLogger(__name__)
+
+JSONDict = dict[str, Any]
+JSONList = list[JSONDict]
 
 
 class BitrixClient:
@@ -82,7 +85,7 @@ class BitrixClient:
     
     # Generic method for any API call
     @beartype
-    async def get_all(self, method: str, params: Optional[Dict] = None) -> List[Dict]:
+    async def get_all(self, method: str, params: Optional[JSONDict] = None) -> JSONList:
         """Generic method to get all items from any Bitrix24 API method."""
         return await self.client.get_all(method, params=params or {})
     
@@ -91,11 +94,11 @@ class BitrixClient:
     @beartype
     async def get_leads(
         self, 
-        filter_params: Optional[Dict] = None,
-        select_fields: Optional[List[str]] = None,
-        order: Optional[Dict] = None,
+        filter_params: Optional[JSONDict] = None,
+        select_fields: Optional[list[str]] = None,
+        order: Optional[JSONDict] = None,
         start: int = 0
-    ) -> List[Dict]:
+    ) -> JSONList:
         """Get leads from Bitrix24."""
         params = {
             "start": start,
@@ -111,13 +114,13 @@ class BitrixClient:
         return await self.client.get_all("crm.lead.list", params=params)
     
     @beartype
-    async def create_lead(self, fields: Dict) -> Dict:
+    async def create_lead(self, fields: JSONDict) -> JSONDict:
         """Create a new lead."""
         result = await self.client.call("crm.lead.add", {"fields": fields})
         return result[0] if result else {}
     
     @beartype
-    async def update_lead(self, lead_id: Union[str, int], fields: Dict) -> bool:
+    async def update_lead(self, lead_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing lead."""
         result = await self.client.call("crm.lead.update", {"id": lead_id, "fields": fields})
         return bool(result[0]) if result else False
@@ -125,11 +128,11 @@ class BitrixClient:
     @beartype
     async def get_deals(
         self, 
-        filter_params: Optional[Dict] = None,
-        select_fields: Optional[List[str]] = None,
-        order: Optional[Dict] = None,
+        filter_params: Optional[JSONDict] = None,
+        select_fields: Optional[list[str]] = None,
+        order: Optional[JSONDict] = None,
         start: int = 0
-    ) -> List[Dict]:
+    ) -> JSONList:
         """Get deals from Bitrix24."""
         params = {
             "start": start,
@@ -145,13 +148,13 @@ class BitrixClient:
         return await self.client.get_all("crm.deal.list", params=params)
     
     @beartype
-    async def create_deal(self, fields: Dict) -> Dict:
+    async def create_deal(self, fields: JSONDict) -> JSONDict:
         """Create a new deal."""
         result = await self.client.call("crm.deal.add", {"fields": fields})
         return result[0] if result else {}
     
     @beartype
-    async def update_deal(self, deal_id: Union[str, int], fields: Dict) -> bool:
+    async def update_deal(self, deal_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing deal."""
         result = await self.client.call("crm.deal.update", {"id": deal_id, "fields": fields})
         return bool(result[0]) if result else False
@@ -159,11 +162,11 @@ class BitrixClient:
     @beartype
     async def get_contacts(
         self, 
-        filter_params: Optional[Dict] = None,
-        select_fields: Optional[List[str]] = None,
-        order: Optional[Dict] = None,
+        filter_params: Optional[JSONDict] = None,
+        select_fields: Optional[list[str]] = None,
+        order: Optional[JSONDict] = None,
         start: int = 0
-    ) -> List[Dict]:
+    ) -> JSONList:
         """Get contacts from Bitrix24."""
         params = {
             "start": start,
@@ -179,13 +182,13 @@ class BitrixClient:
         return await self.client.get_all("crm.contact.list", params=params)
     
     @beartype
-    async def create_contact(self, fields: Dict) -> Dict:
+    async def create_contact(self, fields: JSONDict) -> JSONDict:
         """Create a new contact."""
         result = await self.client.call("crm.contact.add", {"fields": fields})
         return result[0] if result else {}
     
     @beartype
-    async def update_contact(self, contact_id: Union[str, int], fields: Dict) -> bool:
+    async def update_contact(self, contact_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing contact."""
         result = await self.client.call("crm.contact.update", {"id": contact_id, "fields": fields})
         return bool(result[0]) if result else False
@@ -193,11 +196,11 @@ class BitrixClient:
     @beartype
     async def get_companies(
         self, 
-        filter_params: Optional[Dict] = None,
-        select_fields: Optional[List[str]] = None,
-        order: Optional[Dict] = None,
+        filter_params: Optional[JSONDict] = None,
+        select_fields: Optional[list[str]] = None,
+        order: Optional[JSONDict] = None,
         start: int = 0
-    ) -> List[Dict]:
+    ) -> JSONList:
         """Get companies from Bitrix24."""
         params = {
             "start": start,
@@ -213,13 +216,13 @@ class BitrixClient:
         return await self.client.get_all("crm.company.list", params=params)
     
     @beartype
-    async def create_company(self, fields: Dict) -> Dict:
+    async def create_company(self, fields: JSONDict) -> JSONDict:
         """Create a new company."""
         result = await self.client.call("crm.company.add", {"fields": fields})
         return result[0] if result else {}
     
     @beartype
-    async def update_company(self, company_id: Union[str, int], fields: Dict) -> bool:
+    async def update_company(self, company_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing company."""
         result = await self.client.call("crm.company.update", {"id": company_id, "fields": fields})
         return bool(result[0]) if result else False
@@ -229,11 +232,11 @@ class BitrixClient:
     @beartype
     async def get_tasks(
         self, 
-        filter_params: Optional[Dict] = None,
-        select_fields: Optional[List[str]] = None,
-        order: Optional[Dict] = None,
+        filter_params: Optional[JSONDict] = None,
+        select_fields: Optional[list[str]] = None,
+        order: Optional[JSONDict] = None,
         start: int = 0
-    ) -> List[Dict]:
+    ) -> JSONList:
         """Get tasks from Bitrix24."""
         params = {
             "start": start,
@@ -249,13 +252,13 @@ class BitrixClient:
         return await self.client.get_all("tasks.task.list", params=params)
     
     @beartype
-    async def create_task(self, fields: Dict) -> Dict:
+    async def create_task(self, fields: JSONDict) -> JSONDict:
         """Create a new task."""
         result = await self.client.call("tasks.task.add", {"fields": fields})
         return result[0] if result else {}
     
     @beartype
-    async def update_task(self, task_id: Union[str, int], fields: Dict) -> bool:
+    async def update_task(self, task_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing task."""
         result = await self.client.call("tasks.task.update", {"taskId": task_id, "fields": fields})
         return bool(result[0]) if result else False
@@ -271,10 +274,10 @@ class BitrixClient:
     @beartype
     async def get_calendar_events(
         self,
-        filter_params: Optional[Dict] = None,
+        filter_params: Optional[JSONDict] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None
-    ) -> List[Dict]:
+    ) -> JSONList:
         """Get calendar events from Bitrix24."""
         params = filter_params or {}
         
@@ -287,13 +290,13 @@ class BitrixClient:
         return result[0] if result and isinstance(result[0], list) else []
     
     @beartype
-    async def create_calendar_event(self, fields: Dict) -> Dict:
+    async def create_calendar_event(self, fields: JSONDict) -> JSONDict:
         """Create a new calendar event."""
         result = await self.client.call("calendar.event.add", fields)
         return result[0] if result else {}
     
     @beartype
-    async def update_calendar_event(self, event_id: Union[str, int], fields: Dict) -> bool:
+    async def update_calendar_event(self, event_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing calendar event."""
         fields["id"] = event_id
         result = await self.client.call("calendar.event.update", fields)
@@ -310,9 +313,9 @@ class BitrixClient:
     @beartype
     async def get_projects(
         self,
-        filter_params: Optional[Dict] = None,
-        order: Optional[Dict] = None
-    ) -> List[Dict]:
+        filter_params: Optional[JSONDict] = None,
+        order: Optional[JSONDict] = None
+    ) -> JSONList:
         """Get projects (workgroups) from Bitrix24."""
         params = {}
         
@@ -325,13 +328,13 @@ class BitrixClient:
         return result[0] if result and isinstance(result[0], list) else []
     
     @beartype
-    async def create_project(self, fields: Dict) -> Dict:
+    async def create_project(self, fields: JSONDict) -> JSONDict:
         """Create a new project (workgroup)."""
         result = await self.client.call("sonet_group.create", fields)
         return result[0] if result else {}
     
     @beartype
-    async def update_project(self, project_id: Union[str, int], fields: Dict) -> bool:
+    async def update_project(self, project_id: Union[str, int], fields: JSONDict) -> bool:
         """Update an existing project."""
         params = {"GROUP_ID": project_id, **fields}
         result = await self.client.call("sonet_group.update", params)

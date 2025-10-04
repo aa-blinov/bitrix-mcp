@@ -43,12 +43,15 @@ class ProjectTools:
             
             params = {}
             if filter_dict:
-                params["filter"] = filter_dict
+                params["FILTER"] = filter_dict
             if order_dict:
-                params["order"] = order_dict
-            
+                params["ORDER"] = order_dict
+
+            # Avoid passing empty dictionaries that fast_bitrix24 rejects
+            call_params = params if params else None
+
             # Get projects (using sonet_group methods for workgroups)
-            projects = await self.client.client.call("sonet_group.get", params)
+            projects = await self.client.client.call("sonet_group.get", call_params)
             
             # Limit results
             if limit > 0 and projects and isinstance(projects[0], list):

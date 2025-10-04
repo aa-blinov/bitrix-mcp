@@ -482,6 +482,7 @@ def create_server() -> FastMCP:
         date_from: str = "",
         date_to: str = "",
         limit: int = 50,
+        sections: str = "",
         *,
         context: Context,
     ) -> str:
@@ -493,13 +494,15 @@ def create_server() -> FastMCP:
             date_from: Start date for events (YYYY-MM-DD format)
             date_to: End date for events (YYYY-MM-DD format)
             limit: Maximum number of events to return (default: 50)
+            sections: JSON string or comma-separated list of calendar section IDs
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.calendar_tools.get_events(
             filter_params or None,
             date_from or None,
             date_to or None,
-            limit
+            limit=limit,
+            sections=sections or None,
         )
     
     @register_tool(
@@ -549,10 +552,14 @@ def create_server() -> FastMCP:
         "Get Calendar List",
         "Retrieve the list of Bitrix24 calendars available to the integration."
     )
-    async def get_calendar_list(*, context: Context) -> str:
-        """Get list of available calendars in Bitrix24."""
+    async def get_calendar_list(
+        filter_params: str = "",
+        *,
+        context: Context,
+    ) -> str:
+        """Get available calendars from Bitrix24."""
         app_ctx = _get_app_context(context)
-        return await app_ctx.calendar_tools.get_calendar_list()
+        return await app_ctx.calendar_tools.get_calendar_list(filter_params or None)
     
     # Project tools
     @register_tool(
