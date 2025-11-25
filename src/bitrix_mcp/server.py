@@ -560,6 +560,115 @@ def create_server() -> FastMCP:
         app_ctx = _get_app_context(context)
         return await app_ctx.task_tools.get_task_fields()
 
+    @register_tool(
+        "Get Task by ID",
+        'Retrieve detailed information about a specific Bitrix24 task by ID.\n\n**Required attributes:**\n- task_id: Task ID to retrieve\n\n**Optional attributes:** None\n\n**Example request:** get_task_by_id(task_id="123")\n\n**Returns:** JSON with complete task data including title, description, status, responsible user, deadlines, and metadata.',
+    )
+    async def get_task_by_id(task_id: str, *, context: Context) -> str:
+        """
+        Get a task by ID from Bitrix24.
+
+        This method retrieves complete task information including all fields and metadata.
+
+        Args:
+            task_id: Task ID to retrieve (required)
+
+        Returns:
+            JSON string with complete task data including:
+            - Basic info: ID, TITLE, DESCRIPTION, STATUS, RESPONSIBLE_ID
+            - Dates: CREATED_DATE, DEADLINE, START_DATE_PLAN, END_DATE_PLAN
+            - Participants: CREATED_BY, RESPONSIBLE_ID, ACCOMPLICES, AUDITORS
+            - Metadata: PRIORITY, MARK, GROUP_ID, PARENT_ID
+            - Additional fields: UF_CRM_TASK, UF_TASK_WEBDAV_FILES
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.get_task(task_id)
+
+    @register_tool(
+        "Approve Task",
+        'Approve a Bitrix24 task.\n\n**Required attributes:**\n- task_id: Task ID to approve\n\n**Optional attributes:** None\n\n**Example request:** approve_task(task_id="123")\n\n**Returns:** JSON with approval result.',
+    )
+    async def approve_task(task_id: str, *, context: Context) -> str:
+        """
+        Approve a task in Bitrix24.
+
+        Args:
+            task_id: Task ID to approve (required)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.approve_task(task_id)
+
+    @register_tool(
+        "Start Task",
+        'Start a Bitrix24 task.\n\n**Required attributes:**\n- task_id: Task ID to start\n\n**Optional attributes:** None\n\n**Example request:** start_task(task_id="123")\n\n**Returns:** JSON with start result.',
+    )
+    async def start_task(task_id: str, *, context: Context) -> str:
+        """
+        Start a task in Bitrix24.
+
+        Args:
+            task_id: Task ID to start (required)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.start_task(task_id)
+
+    @register_tool(
+        "Delegate Task",
+        'Delegate a Bitrix24 task to another user.\n\n**Required attributes:**\n- task_id: Task ID to delegate\n- user_id: User ID to delegate to\n\n**Optional attributes:** None\n\n**Example request:** delegate_task(task_id="123", user_id="456")\n\n**Returns:** JSON with delegation result.',
+    )
+    async def delegate_task(task_id: str, user_id: str, *, context: Context) -> str:
+        """
+        Delegate a task to another user in Bitrix24.
+
+        Args:
+            task_id: Task ID to delegate (required)
+            user_id: User ID to delegate to (required)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.delegate_task(task_id, user_id)
+
+    @register_tool(
+        "Renew Task",
+        'Renew a Bitrix24 task.\n\n**Required attributes:**\n- task_id: Task ID to renew\n\n**Optional attributes:** None\n\n**Example request:** renew_task(task_id="123")\n\n**Returns:** JSON with renewal result.',
+    )
+    async def renew_task(task_id: str, *, context: Context) -> str:
+        """
+        Renew a task in Bitrix24.
+
+        Args:
+            task_id: Task ID to renew (required)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.renew_task(task_id)
+
+    @register_tool(
+        "Start Watching Task",
+        'Start watching a Bitrix24 task.\n\n**Required attributes:**\n- task_id: Task ID to start watching\n\n**Optional attributes:** None\n\n**Example request:** start_watching_task(task_id="123")\n\n**Returns:** JSON with watch result.',
+    )
+    async def start_watching_task(task_id: str, *, context: Context) -> str:
+        """
+        Start watching a task in Bitrix24.
+
+        Args:
+            task_id: Task ID to start watching (required)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.start_watching_task(task_id)
+
+    @register_tool(
+        "Disapprove Task",
+        'Disapprove a Bitrix24 task.\n\n**Required attributes:**\n- task_id: Task ID to disapprove\n\n**Optional attributes:** None\n\n**Example request:** disapprove_task(task_id="123")\n\n**Returns:** JSON with disapproval result.',
+    )
+    async def disapprove_task(task_id: str, *, context: Context) -> str:
+        """
+        Disapprove a task in Bitrix24.
+
+        Args:
+            task_id: Task ID to disapprove (required)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.task_tools.disapprove_task(task_id)
+
     # Calendar tools
     @register_tool(
         "Get Calendar Events",

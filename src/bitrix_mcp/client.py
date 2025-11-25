@@ -309,6 +309,52 @@ class BitrixClient:
         result = await self.client.call("tasks.task.complete", {"taskId": task_id})
         return bool(result[0]) if result else False
 
+    @beartype
+    async def get_task(self, task_id: Union[str, int]) -> Optional[JSONDict]:
+        """Get a task by ID."""
+        result = await self.client.call("tasks.task.get", {"taskId": task_id})
+        return result[0] if result else None
+
+    @beartype
+    async def approve_task(self, task_id: Union[str, int]) -> bool:
+        """Approve a task."""
+        result = await self.client.call("tasks.task.approve", {"taskId": task_id})
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def start_task(self, task_id: Union[str, int]) -> bool:
+        """Start a task."""
+        result = await self.client.call("tasks.task.start", {"taskId": task_id})
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def delegate_task(
+        self, task_id: Union[str, int], user_id: Union[str, int]
+    ) -> bool:
+        """Delegate a task to another user."""
+        result = await self.client.call(
+            "tasks.task.delegate", {"taskId": task_id, "userId": user_id}
+        )
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def renew_task(self, task_id: Union[str, int]) -> bool:
+        """Renew a task."""
+        result = await self.client.call("tasks.task.renew", {"taskId": task_id})
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def start_watching_task(self, task_id: Union[str, int]) -> bool:
+        """Start watching a task."""
+        result = await self.client.call("tasks.task.startwatch", {"taskId": task_id})
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def disapprove_task(self, task_id: Union[str, int]) -> bool:
+        """Disapprove a task."""
+        result = await self.client.call("tasks.task.disapprove", {"taskId": task_id})
+        return bool(result[0]) if result else False
+
     # Calendar Methods
 
     @beartype

@@ -1,13 +1,13 @@
 # Bitrix24 MCP Server
 
-This repository contains a Model Context Protocol (MCP) server for Bitrix24. It lets LLM assistants work with Bitrix24 CRM data through natural language commands.
+This repository contains a Model Context Protocol (MCP) server for Bitrix24. It lets LLM assistants work with Bitrix24 CRM data, tasks, calendar events, and project management through natural language commands.
 
 ## Features
 
 - **CRM Operations**: Manage leads, deals, contacts, and companies
-- **Task Management**: Create, update, and track tasks and their completion
-- **Calendar Integration**: Manage calendar events and schedules
-- **Project Management**: Handle projects (workgroups) and team collaboration
+- **Task Management**: Create, update, and track tasks with full lifecycle management (approve, start, delegate, renew, watch, disapprove)
+- **Calendar Integration**: Manage calendar events and schedules with meeting status tracking
+- **Project Management**: Handle projects (workgroups) and team collaboration with member management
 - **High Performance**: Built on the fast-bitrix24 library for efficient API calls
 - **Type Safety**: Full type hints and validation
 - **Async Support**: Non-blocking operations using async/await
@@ -17,6 +17,7 @@ This repository contains a Model Context Protocol (MCP) server for Bitrix24. It 
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd bitrix-mcp
@@ -24,23 +25,26 @@ cd bitrix-mcp
 
 2. Install dependencies (pick one workflow):
 
-  **Using uv (recommended)**
-  ```bash
-  uv venv
-  uv pip install -r requirements.txt
-  ```
+   **Using uv (recommended)**
 
-  **Using standard venv + pip**
-  ```bash
-  python -m venv .venv
-  # Windows
-  .venv\Scripts\activate
-  # Linux/Mac
-  source .venv/bin/activate
-  pip install -r requirements.txt
-  ```
+```bash
+uv venv
+uv pip install -r requirements.txt
+```
+
+**Using standard venv + pip**
+
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/Mac
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
 3. Configure your Bitrix24 credentials:
+
 ```bash
 cp config/example.env .env
 # Edit .env file with your Bitrix24 credentials
@@ -51,17 +55,20 @@ cp config/example.env .env
 Create a `.env` file in the project root with your Bitrix24 credentials:
 
 ### Option 1: Webhook URL (Recommended for simplicity)
+
 ```env
 BITRIX24_WEBHOOK_URL=https://your-portal.bitrix24.com/rest/1/your_webhook_key/
 ```
 
 ### Option 2: OAuth Token (Recommended for production)
+
 ```env
 BITRIX24_ACCESS_TOKEN=your_access_token
 BITRIX24_PORTAL_URL=https://your-portal.bitrix24.com
 ```
 
 ### Optional Settings
+
 ```env
 # Performance settings
 BITRIX24_REQUESTS_PER_SECOND=2
@@ -79,16 +86,19 @@ MCP_LOG_LEVEL=INFO
 ### Running the server
 
 **Using uv (auto-manages the virtual environment):**
+
 ```bash
 uv run python -m src.bitrix_mcp.server
 ```
 
 **Using an activated virtual environment:**
+
 ```bash
 python -m src.bitrix_mcp.server
 ```
 
 Add transport overrides as needed, for example:
+
 ```bash
 uv run python -m src.bitrix_mcp.server --transport streamable-http --port 8000
 ```
@@ -96,6 +106,7 @@ uv run python -m src.bitrix_mcp.server --transport streamable-http --port 8000
 Note: legacy helpers `start_server.bat` and `start_server.sh` remain for convenience but offer no additional functionality compared to the commands above.
 
 ### Testing
+
 ```bash
 uv run python test_server.py
 ```
@@ -103,57 +114,80 @@ uv run python test_server.py
 ## Available Tools
 
 ### CRM Management
+
 #### Lead Management
+
 - **get_leads**: Retrieve leads with filtering and pagination
 - **create_lead**: Create new leads
 - **update_lead**: Update existing leads
 - **get_lead_fields**: Get available lead fields
 
 #### Deal Management
+
 - **get_deals**: Retrieve deals with filtering
 - **create_deal**: Create new deals
 - **update_deal**: Update existing deals
 - **get_deal_fields**: Get available deal fields
 
 #### Contact Management
+
 - **get_contacts**: Retrieve contacts
 - **create_contact**: Create new contacts
 - **update_contact**: Update existing contacts
 - **get_contact_fields**: Get available contact fields
 
 #### Company Management
+
 - **get_companies**: Retrieve companies
 - **create_company**: Create new companies
 - **update_company**: Update existing companies
 - **get_company_fields**: Get available company fields
 
 ### Task Management
+
 - **get_tasks**: Retrieve tasks with filtering and pagination
+- **get_task**: Get a specific task by ID
 - **create_task**: Create new tasks
 - **update_task**: Update existing tasks
 - **complete_task**: Mark tasks as completed
+- **approve_task**: Approve tasks
+- **start_task**: Start task execution
+- **delegate_task**: Delegate tasks to other users
+- **renew_task**: Renew task deadlines
+- **start_watching_task**: Start watching tasks for updates
+- **disapprove_task**: Disapprove tasks
 - **get_task_fields**: Get available task fields
 
 ### Calendar Management
+
 - **get_calendar_events**: Retrieve calendar events with date filtering
 - **create_calendar_event**: Create new calendar events
 - **update_calendar_event**: Update existing calendar events
 - **delete_calendar_event**: Delete calendar events
 - **get_calendar_list**: Get list of available calendars
+- **get_calendar_event_by_id**: Get detailed calendar event information
+- **get_nearest_calendar_events**: Get upcoming calendar events
+- **get_meeting_status**: Check meeting participation status
+- **set_meeting_status**: Set meeting participation status
 
 ### Project Management
+
 - **get_projects**: Retrieve projects (workgroups) with filtering
 - **create_project**: Create new projects
 - **update_project**: Update existing projects
 - **get_project_tasks**: Get tasks for a specific project
 - **add_project_member**: Add members to projects
 - **get_project_members**: Get project member list
+- **expel_project_member**: Remove members from projects
+- **request_join_project**: Send requests to join projects
+- **invite_project_member**: Invite users to join projects
 
 ## Usage Examples
 
 ### CRM Operations
 
 #### Getting Leads
+
 ```json
 {
   "tool": "get_leads",
@@ -166,6 +200,7 @@ uv run python test_server.py
 ```
 
 #### Creating a Lead
+
 ```json
 {
   "tool": "create_lead",
@@ -176,6 +211,7 @@ uv run python test_server.py
 ```
 
 #### Getting Deals with Filtering
+
 ```json
 {
   "tool": "get_deals",
@@ -191,6 +227,7 @@ uv run python test_server.py
 ### Task Management
 
 #### Getting Tasks
+
 ```json
 {
   "tool": "get_tasks",
@@ -203,6 +240,7 @@ uv run python test_server.py
 ```
 
 #### Creating a Task
+
 ```json
 {
   "tool": "create_task",
@@ -213,6 +251,7 @@ uv run python test_server.py
 ```
 
 #### Completing a Task
+
 ```json
 {
   "tool": "complete_task",
@@ -222,9 +261,88 @@ uv run python test_server.py
 }
 ```
 
+#### Getting a Task by ID
+
+```json
+{
+  "tool": "get_task_by_id",
+  "arguments": {
+    "task_id": "123"
+  }
+}
+```
+
+#### Approving a Task
+
+```json
+{
+  "tool": "approve_task",
+  "arguments": {
+    "task_id": "123"
+  }
+}
+```
+
+#### Starting a Task
+
+```json
+{
+  "tool": "start_task",
+  "arguments": {
+    "task_id": "123"
+  }
+}
+```
+
+#### Delegating a Task
+
+```json
+{
+  "tool": "delegate_task",
+  "arguments": {
+    "task_id": "123",
+    "user_id": "456"
+  }
+}
+```
+
+#### Renewing a Task
+
+```json
+{
+  "tool": "renew_task",
+  "arguments": {
+    "task_id": "123"
+  }
+}
+```
+
+#### Starting to Watch a Task
+
+```json
+{
+  "tool": "start_watching_task",
+  "arguments": {
+    "task_id": "123"
+  }
+}
+```
+
+#### Disapproving a Task
+
+```json
+{
+  "tool": "disapprove_task",
+  "arguments": {
+    "task_id": "123"
+  }
+}
+```
+
 ### Calendar Management
 
 #### Getting Calendar Events
+
 ```json
 {
   "tool": "get_calendar_events",
@@ -237,6 +355,7 @@ uv run python test_server.py
 ```
 
 #### Creating a Calendar Event
+
 ```json
 {
   "tool": "create_calendar_event",
@@ -246,9 +365,56 @@ uv run python test_server.py
 }
 ```
 
+#### Getting Calendar Event by ID
+
+```json
+{
+  "tool": "get_calendar_event_by_id",
+  "arguments": {
+    "event_id": "123"
+  }
+}
+```
+
+#### Getting Nearest Calendar Events
+
+```json
+{
+  "tool": "get_nearest_calendar_events",
+  "arguments": {
+    "days": 30,
+    "max_events_count": 10
+  }
+}
+```
+
+#### Getting Meeting Status
+
+```json
+{
+  "tool": "get_meeting_status",
+  "arguments": {
+    "event_id": "123"
+  }
+}
+```
+
+#### Setting Meeting Status
+
+```json
+{
+  "tool": "set_meeting_status",
+  "arguments": {
+    "event_id": "123",
+    "status": "Y"
+  }
+}
+```
+
 ### Project Management
 
 #### Getting Projects
+
 ```json
 {
   "tool": "get_projects",
@@ -261,6 +427,7 @@ uv run python test_server.py
 ```
 
 #### Creating a Project
+
 ```json
 {
   "tool": "create_project",
@@ -271,6 +438,7 @@ uv run python test_server.py
 ```
 
 #### Getting Project Tasks
+
 ```json
 {
   "tool": "get_project_tasks",
@@ -282,6 +450,7 @@ uv run python test_server.py
 ```
 
 #### Adding Project Member
+
 ```json
 {
   "tool": "add_project_member",
@@ -289,6 +458,43 @@ uv run python test_server.py
     "project_id": "5",
     "user_id": "3",
     "role": "member"
+  }
+}
+```
+
+#### Expelling a Project Member
+
+```json
+{
+  "tool": "expel_project_member",
+  "arguments": {
+    "project_id": "5",
+    "user_id": "3"
+  }
+}
+```
+
+#### Requesting to Join a Project
+
+```json
+{
+  "tool": "request_join_project",
+  "arguments": {
+    "project_id": "5",
+    "message": "Please add me to the project"
+  }
+}
+```
+
+#### Inviting a User to Join a Project
+
+```json
+{
+  "tool": "invite_project_member",
+  "arguments": {
+    "project_id": "5",
+    "user_id": "3",
+    "message": "We'd like you to join our project"
   }
 }
 ```
@@ -314,6 +520,18 @@ bitrix-mcp/
 │           └── projects.py    # Project (workgroup) management
 ├── config/
 │   └── example.env           # Example configuration
+├── tests/
+│   ├── conftest.py           # Test configuration
+│   ├── integration/          # Integration tests
+│   │   └── test_tasks_integration.py
+│   └── unit/                 # Unit tests
+│       ├── test_calendar.py  # Calendar tool tests
+│       ├── test_companies.py # Company tool tests
+│       ├── test_contacts.py  # Contact tool tests
+│       ├── test_deals.py     # Deal tool tests
+│       ├── test_leads.py     # Lead tool tests
+│       ├── test_projects.py  # Project tool tests
+│       └── test_tasks.py     # Task tool tests
 ├── requirements.txt
 ├── README.md
 ├── test_server.py           # Test script
@@ -326,26 +544,31 @@ bitrix-mcp/
 ## Development
 
 ### Installing Development Dependencies
+
 ```bash
 pip install pytest pytest-asyncio pytest-cov black flake8 mypy
 ```
 
 ### Running Tests
+
 ```bash
 pytest tests/
 ```
 
 ### Code Formatting
+
 ```bash
 black src/ tests/
 ```
 
 ### Linting
+
 ```bash
 flake8 src/ tests/
 ```
 
 ### Type Checking
+
 ```bash
 mypy src/
 ```
@@ -355,7 +578,9 @@ mypy src/
 This MCP server can be integrated with various LLM clients that support the Model Context Protocol:
 
 ### Claude Desktop
+
 Add to your `claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
@@ -369,6 +594,7 @@ Add to your `claude_desktop_config.json`:
 ```
 
 ### Generic MCP Client
+
 ```python
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -379,15 +605,15 @@ async def connect_to_bitrix():
         args=["-m", "src.bitrix_mcp.server"],
         cwd="/path/to/bitrix-mcp"
     )
-    
+
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
-            
+
             # List available tools
             tools = await session.list_tools()
             print(f"Available tools: {[t.name for t in tools.tools]}")
-            
+
             # Call a tool
             result = await session.call_tool("get_leads", {
                 "limit": 5

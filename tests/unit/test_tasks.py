@@ -75,3 +75,177 @@ def test_get_tasks_preserves_results_when_limit_zero() -> None:
     assert payload["success"] is True
     assert payload["count"] == 2
     assert payload["tasks"] == [{"id": 1}, {"id": 2}]
+
+
+def test_get_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.get_task.return_value = {"id": 123, "title": "Test Task"}
+
+    result_json = asyncio.run(tools.get_task("123"))
+
+    client.get_task.assert_called_once_with("123")
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task"] == {"id": 123, "title": "Test Task"}
+
+
+def test_get_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.get_task.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.get_task("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
+
+
+def test_approve_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.return_value = [True]
+
+    result_json = asyncio.run(tools.approve_task("123"))
+
+    client.client.call.assert_called_once_with("tasks.task.approve", {"taskId": "123"})
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task_id"] == "123"
+    assert "approved successfully" in payload["message"]
+
+
+def test_approve_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.approve_task("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
+
+
+def test_start_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.return_value = [True]
+
+    result_json = asyncio.run(tools.start_task("123"))
+
+    client.client.call.assert_called_once_with("tasks.task.start", {"taskId": "123"})
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task_id"] == "123"
+    assert "started successfully" in payload["message"]
+
+
+def test_start_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.start_task("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
+
+
+def test_delegate_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.return_value = [True]
+
+    result_json = asyncio.run(tools.delegate_task("123", "456"))
+
+    client.client.call.assert_called_once_with(
+        "tasks.task.delegate", {"taskId": "123", "userId": "456"}
+    )
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task_id"] == "123"
+    assert payload["user_id"] == "456"
+    assert "delegated successfully" in payload["message"]
+
+
+def test_delegate_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.delegate_task("123", "456"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
+
+
+def test_renew_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.return_value = [True]
+
+    result_json = asyncio.run(tools.renew_task("123"))
+
+    client.client.call.assert_called_once_with("tasks.task.renew", {"taskId": "123"})
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task_id"] == "123"
+    assert "renewed successfully" in payload["message"]
+
+
+def test_renew_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.renew_task("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
+
+
+def test_start_watching_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.return_value = [True]
+
+    result_json = asyncio.run(tools.start_watching_task("123"))
+
+    client.client.call.assert_called_once_with(
+        "tasks.task.startwatch", {"taskId": "123"}
+    )
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task_id"] == "123"
+    assert "watching task successfully" in payload["message"]
+
+
+def test_start_watching_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.start_watching_task("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
+
+
+def test_disapprove_task_calls_client_and_returns_result() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.return_value = [True]
+
+    result_json = asyncio.run(tools.disapprove_task("123"))
+
+    client.client.call.assert_called_once_with(
+        "tasks.task.disapprove", {"taskId": "123"}
+    )
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["task_id"] == "123"
+    assert "disapproved successfully" in payload["message"]
+
+
+def test_disapprove_task_returns_error_on_client_error() -> None:
+    tools, client = _make_task_tools()
+    client.client.call.side_effect = Exception("API Error")
+
+    result_json = asyncio.run(tools.disapprove_task("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert "API Error" in payload["error"]
