@@ -13,6 +13,10 @@ from bitrix_mcp.tools.calendar import CalendarTools
 def _make_calendar_tools() -> Tuple[CalendarTools, MagicMock]:
     """Create a CalendarTools instance paired with a mocked Bitrix client."""
     client = MagicMock()
+    client.get_calendar_event_by_id = AsyncMock()
+    client.get_nearest_calendar_events = AsyncMock()
+    client.get_meeting_status = AsyncMock()
+    client.set_meeting_status = AsyncMock()
     client.client = MagicMock()
     client.client.call = AsyncMock()
     return CalendarTools(client), client
@@ -226,3 +230,193 @@ def test_get_calendar_list_defaults_to_user_type() -> None:
 
     payload = json.loads(result_json)
     assert payload["success"] is True
+
+
+def test_get_event_by_id_calls_client_and_returns_result() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_calendar_event_by_id.return_value = {"ID": "123", "NAME": "Test Event"}
+
+    result_json = asyncio.run(tools.get_event_by_id("123"))
+
+    client.get_calendar_event_by_id.assert_awaited_once_with("123")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["event"] == {"ID": "123", "NAME": "Test Event"}
+
+
+def test_get_event_by_id_returns_error_when_event_not_found() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_calendar_event_by_id.return_value = None
+
+    result_json = asyncio.run(tools.get_event_by_id("999"))
+
+    client.get_calendar_event_by_id.assert_awaited_once_with("999")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "Event with ID 999 not found"
+
+
+def test_get_event_by_id_returns_error_on_client_error() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_calendar_event_by_id.side_effect = Exception("API error")
+
+    result_json = asyncio.run(tools.get_event_by_id("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"
+
+
+def test_get_nearest_events_calls_client_and_returns_result() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_nearest_calendar_events.return_value = [
+        {"ID": "123", "NAME": "Meeting 1"},
+        {"ID": "456", "NAME": "Meeting 2"},
+    ]
+
+    result_json = asyncio.run(tools.get_nearest_events())
+
+    client.get_nearest_calendar_events.assert_awaited_once_with(
+        calendar_type="user",
+        owner_id=None,
+        days=60,
+        for_current_user=True,
+        max_events_count=None,
+        detail_url=None,
+    )
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["count"] == 2
+    assert len(payload["events"]) == 2
+
+
+def test_get_nearest_events_with_custom_params() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_nearest_calendar_events.return_value = [{"ID": "123", "NAME": "Event"}]
+
+    result_json = asyncio.run(
+        tools.get_nearest_events(
+            calendar_type="group",
+            owner_id="5",
+            days=30,
+            for_current_user=False,
+            max_events_count=10,
+            detail_url="/calendar/",
+        )
+    )
+
+    client.get_nearest_calendar_events.assert_awaited_once_with(
+        calendar_type="group",
+        owner_id=5,
+        days=30,
+        for_current_user=False,
+        max_events_count=10,
+        detail_url="/calendar/",
+    )
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+
+
+def test_get_nearest_events_returns_error_on_client_error() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_nearest_calendar_events.side_effect = Exception("API error")
+
+    result_json = asyncio.run(tools.get_nearest_events())
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"
+
+
+def test_get_meeting_status_calls_client_and_returns_result() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_meeting_status.return_value = "Y"
+
+    result_json = asyncio.run(tools.get_meeting_status("123"))
+
+    client.get_meeting_status.assert_awaited_once_with("123")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["event_id"] == "123"
+    assert payload["status"] == "Y"
+
+
+def test_get_meeting_status_returns_error_on_failure() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_meeting_status.return_value = None
+
+    result_json = asyncio.run(tools.get_meeting_status("999"))
+
+    client.get_meeting_status.assert_awaited_once_with("999")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "Could not get meeting status for event 999"
+
+
+def test_get_meeting_status_returns_error_on_client_error() -> None:
+    tools, client = _make_calendar_tools()
+    client.get_meeting_status.side_effect = Exception("API error")
+
+    result_json = asyncio.run(tools.get_meeting_status("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"
+
+
+def test_set_meeting_status_calls_client_and_returns_result() -> None:
+    tools, client = _make_calendar_tools()
+    client.set_meeting_status.return_value = True
+
+    result_json = asyncio.run(tools.set_meeting_status("123", "Y"))
+
+    client.set_meeting_status.assert_awaited_once_with("123", "Y")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["event_id"] == "123"
+    assert payload["status"] == "Y"
+    assert payload["message"] == "Meeting status updated successfully"
+
+
+def test_set_meeting_status_with_invalid_status() -> None:
+    tools, client = _make_calendar_tools()
+
+    result_json = asyncio.run(tools.set_meeting_status("123", "X"))
+
+    # Client should not be called for invalid status
+    client.set_meeting_status.assert_not_called()
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "Invalid status 'X'. Must be 'Y', 'N', or 'Q'"
+
+
+def test_set_meeting_status_returns_error_on_failure() -> None:
+    tools, client = _make_calendar_tools()
+    client.set_meeting_status.return_value = False
+
+    result_json = asyncio.run(tools.set_meeting_status("123", "N"))
+
+    client.set_meeting_status.assert_awaited_once_with("123", "N")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["message"] == "Failed to update meeting status"
+
+
+def test_set_meeting_status_returns_error_on_client_error() -> None:
+    tools, client = _make_calendar_tools()
+    client.set_meeting_status.side_effect = Exception("API error")
+
+    result_json = asyncio.run(tools.set_meeting_status("123", "Y"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"

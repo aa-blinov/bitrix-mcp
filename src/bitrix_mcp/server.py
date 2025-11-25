@@ -648,6 +648,126 @@ def create_server() -> FastMCP:
         app_ctx = _get_app_context(context)
         return await app_ctx.calendar_tools.get_calendar_list(filter_params or None)
 
+    @register_tool(
+        "Get Calendar Event by ID",
+        "Retrieve detailed information about a specific Bitrix24 calendar event by its ID, including all properties, participants, and metadata.",
+    )
+    async def get_calendar_event_by_id(event_id: str, *, context: Context) -> str:
+        """
+        Get a calendar event by ID from Bitrix24.
+
+        This method retrieves complete event information including participants, recurrence rules,
+        CRM links, and file attachments.
+
+        Args:
+            event_id: Event ID to retrieve (required)
+
+        Returns:
+            JSON string with complete event data including:
+            - Basic info: ID, NAME, DESCRIPTION, LOCATION
+            - Dates: DATE_FROM, DATE_TO, TZ_FROM, TZ_TO, DT_SKIP_TIME
+            - Participants: ATTENDEE_LIST, ATTENDEES_CODES, IS_MEETING, MEETING_STATUS
+            - Recurrence: RRULE, EXDATE, RECURRENCE_ID
+            - Metadata: CREATED_BY, DATE_CREATE, TIMESTAMP_X, PRIVATE_EVENT
+            - CRM integration: UF_CRM_CAL_EVENT
+            - Files: UF_WEBDAV_CAL_EVENT
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.calendar_tools.get_event_by_id(event_id)
+
+    @register_tool(
+        "Get Nearest Calendar Events",
+        "Retrieve upcoming Bitrix24 calendar events within a specified number of days for dashboards, notifications, or planning.",
+    )
+    async def get_nearest_calendar_events(
+        calendar_type: str = "user",
+        owner_id: str = "",
+        days: int = 60,
+        for_current_user: bool = True,
+        max_events_count: int = 0,
+        detail_url: str = "",
+        *,
+        context: Context,
+    ) -> str:
+        """
+        Get nearest upcoming calendar events from Bitrix24.
+
+        Useful for displaying upcoming events in dashboards or sending notifications.
+
+        Args:
+            calendar_type: Type of calendar to search (optional, default: "user")
+                         - "user" - user calendar
+                         - "group" - group calendar
+                         - "company_calendar" - company calendar
+            owner_id: Owner ID of the calendar (optional)
+                     - For user calendar: user ID
+                     - For group calendar: group ID
+                     - For company calendar: usually 0 or empty
+            days: Number of days to look ahead (optional, default: 60)
+            for_current_user: Get events for current user only (optional, default: true)
+            max_events_count: Maximum events to return (optional, 0 = no limit)
+            detail_url: Calendar detail URL template (optional)
+
+        Returns:
+            JSON string with list of upcoming events
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.calendar_tools.get_nearest_events(
+            calendar_type=calendar_type,
+            owner_id=owner_id or None,
+            days=days,
+            for_current_user=for_current_user,
+            max_events_count=max_events_count if max_events_count > 0 else None,
+            detail_url=detail_url or None,
+        )
+
+    @register_tool(
+        "Get Meeting Status",
+        "Check the current user's participation status for a Bitrix24 calendar meeting event.",
+    )
+    async def get_meeting_status(event_id: str, *, context: Context) -> str:
+        """
+        Get the current user's participation status for a meeting event.
+
+        Only works for events that are meetings (have participants).
+
+        Args:
+            event_id: Event ID to check status for (required)
+
+        Returns:
+            JSON string with participation status:
+            - "Y" - Accepted (согласен)
+            - "N" - Declined (отказался)
+            - "Q" - Pending (приглашен, но еще не ответил)
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.calendar_tools.get_meeting_status(event_id)
+
+    @register_tool(
+        "Set Meeting Status",
+        "Set the current user's participation status for a Bitrix24 calendar meeting event (accept, decline, or mark as pending).",
+    )
+    async def set_meeting_status(
+        event_id: str, status: str, *, context: Context
+    ) -> str:
+        """
+        Set the current user's participation status for a meeting event.
+
+        Allows accepting, declining, or marking as pending participation in calendar meetings.
+
+        Args:
+            event_id: Event ID to set status for (required)
+            status: Participation status (required):
+                   - "Y" - Accept (принять)
+                   - "N" - Decline (отклонить)
+                   - "Q" - Mark as pending (отметить как ожидание ответа)
+
+        Returns:
+            JSON string with operation result
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.calendar_tools.set_meeting_status(event_id, status)
+
     # Project tools
     @register_tool(
         "Get Projects",

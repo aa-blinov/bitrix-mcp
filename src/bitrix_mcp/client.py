@@ -350,6 +350,59 @@ class BitrixClient:
         result = await self.client.call("calendar.event.delete", {"id": event_id})
         return bool(result[0]) if result else False
 
+    @beartype
+    async def get_calendar_event_by_id(
+        self, event_id: Union[str, int]
+    ) -> Optional[JSONDict]:
+        """Get a calendar event by ID."""
+        result = await self.client.call("calendar.event.getbyid", {"id": event_id})
+        return result[0] if result else None
+
+    @beartype
+    async def get_nearest_calendar_events(
+        self,
+        calendar_type: Optional[str] = None,
+        owner_id: Optional[Union[str, int]] = None,
+        days: int = 60,
+        for_current_user: bool = True,
+        max_events_count: Optional[int] = None,
+        detail_url: Optional[str] = None,
+    ) -> JSONList:
+        """Get nearest calendar events from Bitrix24."""
+        params = {}
+
+        if calendar_type:
+            params["type"] = calendar_type
+        if owner_id is not None:
+            params["ownerId"] = owner_id
+        if days != 60:
+            params["days"] = days
+        if not for_current_user:
+            params["forCurrentUser"] = for_current_user
+        if max_events_count:
+            params["maxEventsCount"] = max_events_count
+        if detail_url:
+            params["detailUrl"] = detail_url
+
+        result = await self.client.call("calendar.event.get.nearest", params)
+        return result[0] if result and isinstance(result[0], list) else []
+
+    @beartype
+    async def get_meeting_status(self, event_id: Union[str, int]) -> Optional[str]:
+        """Get meeting participation status for current user."""
+        result = await self.client.call(
+            "calendar.meeting.status.get", {"eventId": event_id}
+        )
+        return result[0] if result else None
+
+    @beartype
+    async def set_meeting_status(self, event_id: Union[str, int], status: str) -> bool:
+        """Set meeting participation status for current user."""
+        result = await self.client.call(
+            "calendar.meeting.status.set", {"eventId": event_id, "status": status}
+        )
+        return bool(result[0]) if result else False
+
     # Project (Workgroup) Methods
 
     @beartype
