@@ -128,7 +128,7 @@ def create_server() -> FastMCP:
     # Lead tools
     @register_tool(
         "Get Leads",
-        "Retrieve Bitrix24 leads with optional JSON filters (e.g., status, date), comma-separated field selection, JSON ordering, and result limit.",
+        'Retrieve Bitrix24 leads with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"STATUS_ID": "NEW"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,NAME,EMAIL\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of leads to return (default: 50)\n\n**Example request:** get_leads(filter_params=\'{"STATUS_ID": "NEW"}\', select_fields=\'ID,TITLE,NAME\', limit=10)\n\n**Returns:** JSON with leads data.',
     )
     async def get_leads(
         filter_params: str = "",
@@ -154,7 +154,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Lead",
-        'Create a Bitrix24 lead using a JSON payload with field values. Required: TITLE. Optional: NAME, LAST_NAME, STATUS_ID, ASSIGNED_BY_ID, CURRENCY_ID, OPPORTUNITY, PHONE array, EMAIL array, etc. Example: \'{"TITLE": "ИП Титов", "NAME": "Глеб", "LAST_NAME": "Титов", "STATUS_ID": "NEW", "ASSIGNED_BY_ID": 1, "CURRENCY_ID": "USD", "OPPORTUNITY": 12500, "PHONE": [{"VALUE": "555888", "VALUE_TYPE": "WORK"}], "EMAIL": [{"VALUE": "gleb@example.com", "VALUE_TYPE": "WORK"}]}\'',
+        'Create a new Bitrix24 lead.\n\n**Required attributes:**\n- fields: JSON string with lead data (must include TITLE)\n\n**Optional attributes:** None\n\n**Example request:** create_lead(fields=\'{"TITLE": "ИП Титов", "NAME": "Глеб", "STATUS_ID": "NEW"}\')\n\n**Returns:** JSON with creation result including lead ID.',
     )
     async def create_lead(fields: str, *, context: Context) -> str:
         """
@@ -171,7 +171,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Lead",
-        "Update fields of an existing Bitrix24 lead by ID with JSON field values.",
+        'Update an existing Bitrix24 lead.\n\n**Required attributes:**\n- lead_id: Lead ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_lead(lead_id="123", fields=\'{"STATUS_ID": "IN_PROCESS", "OPPORTUNITY": 15000}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_lead(lead_id: str, fields: str, *, context: Context) -> str:
         """
@@ -185,7 +185,8 @@ def create_server() -> FastMCP:
         return await app_ctx.lead_tools.update_lead(lead_id, fields)
 
     @register_tool(
-        "Get Lead Fields", "Retrieve metadata about available Bitrix24 lead fields."
+        "Get Lead Fields",
+        "Retrieve metadata about available Bitrix24 lead fields.\n\n**Required attributes:** None\n\n**Optional attributes:** None\n\n**Example request:** get_lead_fields()\n\n**Returns:** JSON with field metadata.",
     )
     async def get_lead_fields(*, context: Context) -> str:
         """
@@ -199,7 +200,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Lead",
-        "Retrieve a single Bitrix24 lead by its ID.",
+        'Retrieve a single Bitrix24 lead by ID.\n\n**Required attributes:**\n- lead_id: Lead ID to retrieve\n\n**Optional attributes:** None\n\n**Example request:** get_lead(lead_id="123")\n\n**Returns:** JSON with lead data.',
     )
     async def get_lead(lead_id: str, *, context: Context) -> str:
         """
@@ -217,7 +218,7 @@ def create_server() -> FastMCP:
     # Deal tools
     @register_tool(
         "Get Deals",
-        "List Bitrix24 deals with optional JSON filters (e.g., stage, opportunity), comma-separated field selection, JSON ordering, and result limit.",
+        'List Bitrix24 deals with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"STAGE_ID": "NEW"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,OPPORTUNITY,STAGE_ID\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of deals to return (default: 50)\n\n**Example request:** get_deals(filter_params=\'{"STAGE_ID": "NEW"}\', select_fields=\'ID,TITLE,OPPORTUNITY\', limit=10)\n\n**Returns:** JSON with deals data.',
     )
     async def get_deals(
         filter_params: str = "",
@@ -243,7 +244,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Deal",
-        'Create a Bitrix24 deal from JSON field map. Optional: TITLE, TYPE_ID, CATEGORY_ID, STAGE_ID, CURRENCY_ID, OPPORTUNITY, COMPANY_ID, CONTACT_IDS array, etc. Example: \'{"TITLE": "Новая сделка #1", "TYPE_ID": "COMPLEX", "CATEGORY_ID": 0, "STAGE_ID": "PREPARATION", "CURRENCY_ID": "EUR", "OPPORTUNITY": 1000000, "COMPANY_ID": 9, "CONTACT_IDS": [84, 83]}\'',
+        'Create a new Bitrix24 deal.\n\n**Required attributes:**\n- fields: JSON string with deal data\n\n**Optional attributes:** None\n\n**Example request:** create_deal(fields=\'{"TITLE": "Новая сделка", "STAGE_ID": "PREPARATION", "OPPORTUNITY": 100000}\')\n\n**Returns:** JSON with creation result including deal ID.',
     )
     async def create_deal(fields: str, *, context: Context) -> str:
         """
@@ -257,7 +258,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Deal",
-        "Update fields on an existing Bitrix24 deal by ID with JSON field values.",
+        'Update an existing Bitrix24 deal.\n\n**Required attributes:**\n- deal_id: Deal ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_deal(deal_id="123", fields=\'{"STAGE_ID": "WON", "CLOSEDATE": "2024-01-15"}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_deal(deal_id: str, fields: str, *, context: Context) -> str:
         """
@@ -271,7 +272,8 @@ def create_server() -> FastMCP:
         return await app_ctx.deal_tools.update_deal(deal_id, fields)
 
     @register_tool(
-        "Get Deal Fields", "Retrieve metadata describing Bitrix24 deal fields."
+        "Get Deal Fields",
+        "Retrieve metadata about available Bitrix24 deal fields.\n\n**Required attributes:** None\n\n**Optional attributes:** None\n\n**Example request:** get_deal_fields()\n\n**Returns:** JSON with field metadata.",
     )
     async def get_deal_fields(*, context: Context) -> str:
         """
@@ -285,7 +287,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Deal",
-        "Retrieve a single Bitrix24 deal by its ID.",
+        'Retrieve a single Bitrix24 deal by ID.\n\n**Required attributes:**\n- deal_id: Deal ID to retrieve\n\n**Optional attributes:** None\n\n**Example request:** get_deal(deal_id="123")\n\n**Returns:** JSON with deal data.',
     )
     async def get_deal(deal_id: str, *, context: Context) -> str:
         """
@@ -303,7 +305,7 @@ def create_server() -> FastMCP:
     # Contact tools
     @register_tool(
         "Get Contacts",
-        "List Bitrix24 contacts with optional JSON filters (e.g., has email), comma-separated field selection, JSON ordering, and result limit.",
+        'List Bitrix24 contacts with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"HAS_EMAIL": "Y"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,NAME,LAST_NAME,EMAIL,PHONE\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of contacts to return (default: 50)\n\n**Example request:** get_contacts(filter_params=\'{"HAS_EMAIL": "Y"}\', select_fields=\'ID,NAME,EMAIL\', limit=10)\n\n**Returns:** JSON with contacts data.',
     )
     async def get_contacts(
         filter_params: str = "",
@@ -329,7 +331,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Contact",
-        'Create a Bitrix24 contact from JSON field map. Optional: NAME, LAST_NAME, HONORIFIC, TYPE_ID, SOURCE_ID, POST, PHONE array, EMAIL array, COMPANY_ID, etc. Example: \'{"NAME": "Иван", "LAST_NAME": "Иванов", "HONORIFIC": "HNR_RU_1", "TYPE_ID": "PARTNER", "SOURCE_ID": "WEB", "POST": "Администратор", "PHONE": [{"VALUE": "+7333333555", "VALUE_TYPE": "WORK"}], "EMAIL": [{"VALUE": "ivanov@example.work", "VALUE_TYPE": "WORK"}], "COMPANY_ID": 12}\'',
+        'Create a new Bitrix24 contact.\n\n**Required attributes:**\n- fields: JSON string with contact data\n\n**Optional attributes:** None\n\n**Example request:** create_contact(fields=\'{"NAME": "Иван", "LAST_NAME": "Иванов", "EMAIL": [{"VALUE": "ivan@example.com", "VALUE_TYPE": "WORK"}]}\')\n\n**Returns:** JSON with creation result including contact ID.',
     )
     async def create_contact(fields: str, *, context: Context) -> str:
         """
@@ -343,7 +345,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Contact",
-        "Update fields for an existing Bitrix24 contact by ID with JSON field values.",
+        'Update an existing Bitrix24 contact.\n\n**Required attributes:**\n- contact_id: Contact ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_contact(contact_id="123", fields=\'{"PHONE": [{"VALUE": "+35599888666", "VALUE_TYPE": "HOME"}]}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_contact(contact_id: str, fields: str, *, context: Context) -> str:
         """
@@ -357,7 +359,8 @@ def create_server() -> FastMCP:
         return await app_ctx.contact_tools.update_contact(contact_id, fields)
 
     @register_tool(
-        "Get Contact Fields", "Retrieve metadata about Bitrix24 contact fields."
+        "Get Contact Fields",
+        "Retrieve metadata about available Bitrix24 contact fields.\n\n**Required attributes:** None\n\n**Optional attributes:** None\n\n**Example request:** get_contact_fields()\n\n**Returns:** JSON with field metadata.",
     )
     async def get_contact_fields(*, context: Context) -> str:
         """
@@ -371,7 +374,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Contact",
-        "Retrieve a single Bitrix24 contact by its ID.",
+        'Retrieve a single Bitrix24 contact by ID.\n\n**Required attributes:**\n- contact_id: Contact ID to retrieve\n\n**Optional attributes:** None\n\n**Example request:** get_contact(contact_id="123")\n\n**Returns:** JSON with contact data.',
     )
     async def get_contact(contact_id: str, *, context: Context) -> str:
         """
@@ -389,7 +392,7 @@ def create_server() -> FastMCP:
     # Company tools
     @register_tool(
         "Get Companies",
-        "List Bitrix24 companies with optional JSON filters (e.g., has email), comma-separated field selection, JSON ordering, and result limit.",
+        'List Bitrix24 companies with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"HAS_EMAIL": "Y"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,EMAIL,PHONE\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of companies to return (default: 50)\n\n**Example request:** get_companies(filter_params=\'{"HAS_EMAIL": "Y"}\', select_fields=\'ID,TITLE,EMAIL\', limit=10)\n\n**Returns:** JSON with companies data.',
     )
     async def get_companies(
         filter_params: str = "",
@@ -415,7 +418,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Company",
-        'Create a Bitrix24 company record from JSON field values. Required: TITLE. Optional: COMPANY_TYPE, INDUSTRY, EMPLOYEES, CURRENCY_ID, REVENUE, PHONE array, EMAIL array, etc. Example: \'{"TITLE": "ИП Титов", "COMPANY_TYPE": "CUSTOMER", "INDUSTRY": "MANUFACTURING", "EMPLOYEES": "EMPLOYEES_2", "CURRENCY_ID": "RUB", "REVENUE": 3000000, "PHONE": [{"VALUE": "555888", "VALUE_TYPE": "WORK"}]}\'',
+        'Create a new Bitrix24 company.\n\n**Required attributes:**\n- fields: JSON string with company data (must include TITLE)\n\n**Optional attributes:** None\n\n**Example request:** create_company(fields=\'{"TITLE": "ИП Титов", "COMPANY_TYPE": "CUSTOMER", "EMAIL": [{"VALUE": "info@company.com", "VALUE_TYPE": "WORK"}]}\')\n\n**Returns:** JSON with creation result including company ID.',
     )
     async def create_company(fields: str, *, context: Context) -> str:
         """
@@ -429,7 +432,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Company",
-        "Update fields of an existing Bitrix24 company by ID with JSON field values.",
+        'Update an existing Bitrix24 company.\n\n**Required attributes:**\n- company_id: Company ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_company(company_id="123", fields=\'{"PHONE": [{"VALUE": "555999", "VALUE_TYPE": "WORK"}]}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_company(company_id: str, fields: str, *, context: Context) -> str:
         """
@@ -443,7 +446,8 @@ def create_server() -> FastMCP:
         return await app_ctx.company_tools.update_company(company_id, fields)
 
     @register_tool(
-        "Get Company Fields", "Retrieve metadata for Bitrix24 company fields."
+        "Get Company Fields",
+        "Retrieve metadata about available Bitrix24 company fields.\n\n**Required attributes:** None\n\n**Optional attributes:** None\n\n**Example request:** get_company_fields()\n\n**Returns:** JSON with field metadata.",
     )
     async def get_company_fields(*, context: Context) -> str:
         """
@@ -457,7 +461,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Company",
-        "Retrieve a single Bitrix24 company by its ID.",
+        'Retrieve a single Bitrix24 company by ID.\n\n**Required attributes:**\n- company_id: Company ID to retrieve\n\n**Optional attributes:** None\n\n**Example request:** get_company(company_id="123")\n\n**Returns:** JSON with company data.',
     )
     async def get_company(company_id: str, *, context: Context) -> str:
         """
@@ -475,7 +479,7 @@ def create_server() -> FastMCP:
     # Task tools
     @register_tool(
         "Get Tasks",
-        "List Bitrix24 tasks with optional JSON filters (e.g., status, responsible), comma-separated field selection, JSON ordering, and result limit.",
+        'List Bitrix24 tasks with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"STATUS": "2"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,DESCRIPTION,STATUS,RESPONSIBLE_ID\')\n- order: JSON string with order conditions (e.g., \'{"CREATED_DATE": "DESC"}\')\n- limit: Maximum number of tasks to return (default: 50)\n\n**Example request:** get_tasks(filter_params=\'{"STATUS": "2"}\', select_fields=\'ID,TITLE,RESPONSIBLE_ID\', limit=10)\n\n**Returns:** JSON with tasks data.',
     )
     async def get_tasks(
         filter_params: str = "",
@@ -501,7 +505,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Task",
-        'Create a Bitrix24 task from JSON payload. Required: TITLE, RESPONSIBLE_ID. Optional: DESCRIPTION, DEADLINE, PRIORITY, etc. Example: \'{"TITLE": "Подготовить отчет", "RESPONSIBLE_ID": 1, "DESCRIPTION": "Отчет по продажам за квартал", "DEADLINE": "2024-12-31T23:59:59", "PRIORITY": "2"}\'',
+        'Create a new Bitrix24 task.\n\n**Required attributes:**\n- fields: JSON string with task data (must include TITLE and RESPONSIBLE_ID)\n\n**Optional attributes:** None\n\n**Example request:** create_task(fields=\'{"TITLE": "Подготовить отчет", "RESPONSIBLE_ID": 1, "DESCRIPTION": "Отчет по продажам", "DEADLINE": "2024-12-31T23:59:59"}\')\n\n**Returns:** JSON with creation result including task ID.',
     )
     async def create_task(fields: str, *, context: Context) -> str:
         """
@@ -515,7 +519,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Task",
-        "Update fields on an existing Bitrix24 task by ID with JSON field values like STATUS, MARK, DEADLINE, etc.",
+        'Update an existing Bitrix24 task.\n\n**Required attributes:**\n- task_id: Task ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_task(task_id="123", fields=\'{"STATUS": "5", "MARK": "P"}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_task(task_id: str, fields: str, *, context: Context) -> str:
         """
@@ -528,7 +532,10 @@ def create_server() -> FastMCP:
         app_ctx = _get_app_context(context)
         return await app_ctx.task_tools.update_task(task_id, fields)
 
-    @register_tool("Complete Task", "Mark a Bitrix24 task as completed.")
+    @register_tool(
+        "Complete Task",
+        'Mark a Bitrix24 task as completed.\n\n**Required attributes:**\n- task_id: Task ID to complete\n\n**Optional attributes:** None\n\n**Example request:** complete_task(task_id="123")\n\n**Returns:** JSON with completion result.',
+    )
     async def complete_task(task_id: str, *, context: Context) -> str:
         """
         Complete a task in Bitrix24.
@@ -539,7 +546,10 @@ def create_server() -> FastMCP:
         app_ctx = _get_app_context(context)
         return await app_ctx.task_tools.complete_task(task_id)
 
-    @register_tool("Get Task Fields", "Retrieve metadata about Bitrix24 task fields.")
+    @register_tool(
+        "Get Task Fields",
+        "Retrieve metadata about available Bitrix24 task fields.\n\n**Required attributes:** None\n\n**Optional attributes:** None\n\n**Example request:** get_task_fields()\n\n**Returns:** JSON with field metadata.",
+    )
     async def get_task_fields(*, context: Context) -> str:
         """
         Get available task fields from Bitrix24.
@@ -553,7 +563,7 @@ def create_server() -> FastMCP:
     # Calendar tools
     @register_tool(
         "Get Calendar Events",
-        "List Bitrix24 calendar events with optional JSON filters, date ranges (YYYY-MM-DD), calendar section IDs, and result limit.",
+        'List Bitrix24 calendar events with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions\n- date_from: Start date for events (YYYY-MM-DD format)\n- date_to: End date for events (YYYY-MM-DD format)\n- limit: Maximum number of events to return (default: 50)\n- sections: JSON string or comma-separated list of calendar section IDs\n\n**Example request:** get_calendar_events(date_from="2024-01-01", date_to="2024-01-31", limit=10)\n\n**Returns:** JSON with calendar events data.',
     )
     async def get_calendar_events(
         filter_params: str = "",
@@ -585,7 +595,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Calendar Event",
-        'Create a Bitrix24 calendar event from JSON fields. Required: NAME, DATE_FROM. Optional: DATE_TO, SECTION, DESCRIPTION, etc. Example: \'{"type": "user", "ownerId": 2, "name": "New Event Name", "from": "2024-06-14", "to": "2024-06-14", "section": 5, "description": "Meeting description"}\'',
+        'Create a new Bitrix24 calendar event.\n\n**Required attributes:**\n- fields: JSON string with event data (must include NAME and DATE_FROM)\n\n**Optional attributes:** None\n\n**Example request:** create_calendar_event(fields=\'{"type": "user", "ownerId": 2, "name": "New Event", "from": "2024-06-14", "to": "2024-06-14", "section": 5}\')\n\n**Returns:** JSON with creation result including event ID.',
     )
     async def create_calendar_event(fields: str, *, context: Context) -> str:
         """
@@ -599,7 +609,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Calendar Event",
-        "Update fields on an existing Bitrix24 calendar event by ID with JSON field values.",
+        'Update an existing Bitrix24 calendar event.\n\n**Required attributes:**\n- event_id: Event ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_calendar_event(event_id="123", fields=\'{"name": "Updated Event", "description": "Updated description"}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_calendar_event(
         event_id: str, fields: str, *, context: Context
@@ -615,7 +625,8 @@ def create_server() -> FastMCP:
         return await app_ctx.calendar_tools.update_event(event_id, fields)
 
     @register_tool(
-        "Delete Calendar Event", "Delete a Bitrix24 calendar event by its identifier."
+        "Delete Calendar Event",
+        'Delete a Bitrix24 calendar event by ID.\n\n**Required attributes:**\n- event_id: Event ID to delete\n\n**Optional attributes:** None\n\n**Example request:** delete_calendar_event(event_id="123")\n\n**Returns:** JSON with deletion result.',
     )
     async def delete_calendar_event(event_id: str, *, context: Context) -> str:
         """
@@ -629,7 +640,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Calendar List",
-        "Retrieve the list of Bitrix24 calendars with optional JSON filters (e.g., type: user/group, ownerId).",
+        'Retrieve the list of Bitrix24 calendars.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter parameters (e.g., \'{"type": "user", "ownerId": 1}\')\n\n**Example request:** get_calendar_list(filter_params=\'{"type": "user", "ownerId": 1}\')\n\n**Returns:** JSON with list of calendars.',
     )
     async def get_calendar_list(
         filter_params: str = "",
@@ -650,7 +661,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Calendar Event by ID",
-        "Retrieve detailed information about a specific Bitrix24 calendar event by its ID, including all properties, participants, and metadata.",
+        'Retrieve detailed information about a specific Bitrix24 calendar event by ID.\n\n**Required attributes:**\n- event_id: Event ID to retrieve\n\n**Optional attributes:** None\n\n**Example request:** get_calendar_event_by_id(event_id="123")\n\n**Returns:** JSON with complete event data including participants, recurrence rules, and metadata.',
     )
     async def get_calendar_event_by_id(event_id: str, *, context: Context) -> str:
         """
@@ -677,7 +688,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Nearest Calendar Events",
-        "Retrieve upcoming Bitrix24 calendar events within a specified number of days for dashboards, notifications, or planning.",
+        'Retrieve upcoming Bitrix24 calendar events within a specified number of days.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- calendar_type: Type of calendar to search (default: "user")\n- owner_id: Owner ID of the calendar\n- days: Number of days to look ahead (default: 60)\n- for_current_user: Get events for current user only (default: true)\n- max_events_count: Maximum events to return\n- detail_url: Calendar detail URL template\n\n**Example request:** get_nearest_calendar_events(calendar_type="user", days=30, max_events_count=10)\n\n**Returns:** JSON with list of upcoming events.',
     )
     async def get_nearest_calendar_events(
         calendar_type: str = "user",
@@ -723,7 +734,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Meeting Status",
-        "Check the current user's participation status for a Bitrix24 calendar meeting event.",
+        'Check the current user\'s participation status for a Bitrix24 calendar meeting event.\n\n**Required attributes:**\n- event_id: Event ID to check status for\n\n**Optional attributes:** None\n\n**Example request:** get_meeting_status(event_id="123")\n\n**Returns:** JSON with participation status ("Y", "N", or "Q").',
     )
     async def get_meeting_status(event_id: str, *, context: Context) -> str:
         """
@@ -745,7 +756,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Set Meeting Status",
-        "Set the current user's participation status for a Bitrix24 calendar meeting event (accept, decline, or mark as pending).",
+        'Set the current user\'s participation status for a Bitrix24 calendar meeting event.\n\n**Required attributes:**\n- event_id: Event ID to set status for\n- status: Participation status ("Y", "N", or "Q")\n\n**Optional attributes:** None\n\n**Example request:** set_meeting_status(event_id="123", status="Y")\n\n**Returns:** JSON with operation result.',
     )
     async def set_meeting_status(
         event_id: str, status: str, *, context: Context
@@ -771,7 +782,7 @@ def create_server() -> FastMCP:
     # Project tools
     @register_tool(
         "Get Projects",
-        "List Bitrix24 projects (workgroups) with optional JSON filters (e.g., ACTIVE), JSON ordering, and result limit.",
+        'List Bitrix24 projects (workgroups) with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"ACTIVE": "Y"}\')\n- order: JSON string with order conditions (e.g., \'{"NAME": "ASC"}\')\n- limit: Maximum number of projects to return (default: 50)\n\n**Example request:** get_projects(filter_params=\'{"ACTIVE": "Y"}\', limit=10)\n\n**Returns:** JSON with projects data.',
     )
     async def get_projects(
         filter_params: str = "",
@@ -795,7 +806,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Create Project",
-        'Create a Bitrix24 project (workgroup) using JSON field data. Required: NAME. Optional: VISIBLE, OPENED, INITIATE_PERMS, DESCRIPTION, etc. Example: \'{"NAME": "Test sonet group", "VISIBLE": "Y", "OPENED": "N", "INITIATE_PERMS": "K", "DESCRIPTION": "Project description"}\'',
+        'Create a new Bitrix24 project (workgroup).\n\n**Required attributes:**\n- fields: JSON string with project data (must include NAME)\n\n**Optional attributes:** None\n\n**Example request:** create_project(fields=\'{"NAME": "Test Project", "VISIBLE": "Y", "DESCRIPTION": "Project description"}\')\n\n**Returns:** JSON with creation result including project ID.',
     )
     async def create_project(fields: str, *, context: Context) -> str:
         """
@@ -809,7 +820,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Update Project",
-        "Update fields for an existing Bitrix24 project by ID with JSON field values.",
+        'Update an existing Bitrix24 project.\n\n**Required attributes:**\n- project_id: Project ID to update\n- fields: JSON string with fields to update\n\n**Optional attributes:** None\n\n**Example request:** update_project(project_id="123", fields=\'{"NAME": "Updated Project Name"}\')\n\n**Returns:** JSON with update result.',
     )
     async def update_project(project_id: str, fields: str, *, context: Context) -> str:
         """
@@ -824,7 +835,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Project Tasks",
-        "List tasks associated with a Bitrix24 project by project ID with optional result limit.",
+        'List tasks associated with a Bitrix24 project.\n\n**Required attributes:**\n- project_id: Project ID\n\n**Optional attributes:**\n- limit: Maximum number of tasks to return (default: 50)\n\n**Example request:** get_project_tasks(project_id="123", limit=10)\n\n**Returns:** JSON with project tasks data.',
     )
     async def get_project_tasks(
         project_id: str, limit: int = 50, *, context: Context
@@ -841,7 +852,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Add Project Member",
-        "Add a user to a Bitrix24 project by project ID and user ID with optional role (member/moderator/etc.).",
+        'Add a user to a Bitrix24 project.\n\n**Required attributes:**\n- project_id: Project ID\n- user_id: User ID to add\n\n**Optional attributes:**\n- role: Role for the user (default: "member")\n\n**Example request:** add_project_member(project_id="123", user_id="456", role="moderator")\n\n**Returns:** JSON with operation result.',
     )
     async def add_project_member(
         project_id: str, user_id: str, role: str = "member", *, context: Context
@@ -859,7 +870,7 @@ def create_server() -> FastMCP:
 
     @register_tool(
         "Get Project Members",
-        "Retrieve members of a Bitrix24 project by project ID with their roles.",
+        'Retrieve members of a Bitrix24 project by ID.\n\n**Required attributes:**\n- project_id: Project ID\n\n**Optional attributes:** None\n\n**Example request:** get_project_members(project_id="123")\n\n**Returns:** JSON with list of project members and their roles.',
     )
     async def get_project_members(project_id: str, *, context: Context) -> str:
         """
@@ -873,6 +884,85 @@ def create_server() -> FastMCP:
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.project_tools.get_project_members(project_id)
+
+    @register_tool(
+        "Expel Project Member",
+        'Remove a user from a Bitrix24 project (workgroup).\n\n**Required attributes:**\n- project_id: Project ID from which to remove the member\n- user_id: User ID to remove from the project\n\n**Optional attributes:** None\n\n**Example request:** expel_project_member(project_id="123", user_id="456")\n\n**Returns:** JSON with success status, project_id, user_id, and confirmation message.',
+    )
+    async def expel_project_member(
+        project_id: str, user_id: str, *, context: Context
+    ) -> str:
+        """
+        Remove a member from a Bitrix24 project (workgroup).
+
+        Args:
+            project_id: Project ID from which to remove the member (required)
+            user_id: User ID to remove from the project (required)
+
+        Returns:
+            JSON string with operation result
+
+        Example:
+            expel_project_member("123", "456")
+            # Returns: {"success": true, "project_id": "123", "user_id": "456", "message": "Member expelled successfully"}
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.project_tools.expel_project_member(project_id, user_id)
+
+    @register_tool(
+        "Request to Join Project",
+        'Send a request to join a Bitrix24 project (workgroup).\n\n**Required attributes:**\n- project_id: Project ID to request joining\n\n**Optional attributes:**\n- message: Personal message to include with the request\n\n**Example request:** request_join_project(project_id="123", message="Please add me to the project")\n\n**Returns:** JSON with success status, project_id, request_message, and confirmation message.',
+    )
+    async def request_join_project(
+        project_id: str, message: Optional[str] = None, *, context: Context
+    ) -> str:
+        """
+        Send a request to join a Bitrix24 project (workgroup).
+
+        Args:
+            project_id: Project ID to request joining (required)
+            message: Optional message to include with the request (optional)
+
+        Returns:
+            JSON string with operation result
+
+        Example:
+            request_join_project("123", "Please add me to the project")
+            # Returns: {"success": true, "project_id": "123", "request_message": "Please add me to the project", "message": "Join request sent successfully"}
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.project_tools.request_join_project(project_id, message)
+
+    @register_tool(
+        "Invite Project Member",
+        'Invite a user to join a Bitrix24 project (workgroup).\n\n**Required attributes:**\n- project_id: Project ID to invite the user to\n- user_id: User ID to invite to the project\n\n**Optional attributes:**\n- message: Personal message to include with the invitation\n\n**Example request:** invite_project_member(project_id="123", user_id="456", message="We\'d like you to join our project")\n\n**Returns:** JSON with success status, project_id, user_id, invitation_message, and confirmation message.',
+    )
+    async def invite_project_member(
+        project_id: str,
+        user_id: str,
+        message: Optional[str] = None,
+        *,
+        context: Context,
+    ) -> str:
+        """
+        Invite a user to join a Bitrix24 project (workgroup).
+
+        Args:
+            project_id: Project ID to invite the user to (required)
+            user_id: User ID to invite to the project (required)
+            message: Optional personal message to include with the invitation (optional)
+
+        Returns:
+            JSON string with operation result
+
+        Example:
+            invite_project_member("123", "456", "We'd like you to join our project")
+            # Returns: {"success": true, "project_id": "123", "user_id": "456", "invitation_message": "We'd like you to join our project", "message": "Invitation sent successfully"}
+        """
+        app_ctx = _get_app_context(context)
+        return await app_ctx.project_tools.invite_project_member(
+            project_id, user_id, message
+        )
 
     return mcp
 

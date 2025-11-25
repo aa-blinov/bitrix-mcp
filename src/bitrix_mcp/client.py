@@ -435,6 +435,40 @@ class BitrixClient:
         result = await self.client.call("sonet_group.update", params)
         return bool(result[0]) if result else False
 
+    @beartype
+    async def expel_project_member(
+        self, project_id: Union[str, int], user_id: Union[str, int]
+    ) -> bool:
+        """Remove a member from a project (workgroup)."""
+        params = {"GROUP_ID": project_id, "USER_ID": user_id}
+        result = await self.client.call("sonet_group.user.expel", params)
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def request_join_project(
+        self, project_id: Union[str, int], message: Optional[str] = None
+    ) -> bool:
+        """Send a request to join a project (workgroup)."""
+        params = {"GROUP_ID": project_id}
+        if message:
+            params["MESSAGE"] = message
+        result = await self.client.call("sonet_group.user.request", params)
+        return bool(result[0]) if result else False
+
+    @beartype
+    async def invite_project_member(
+        self,
+        project_id: Union[str, int],
+        user_id: Union[str, int],
+        message: Optional[str] = None,
+    ) -> bool:
+        """Invite a user to join a project (workgroup)."""
+        params = {"GROUP_ID": project_id, "USER_ID": user_id}
+        if message:
+            params["MESSAGE"] = message
+        result = await self.client.call("sonet_group.user.invite", params)
+        return bool(result[0]) if result else False
+
 
 @asynccontextmanager
 async def get_bitrix_client(config: BitrixConfig) -> AsyncIterator[BitrixClient]:

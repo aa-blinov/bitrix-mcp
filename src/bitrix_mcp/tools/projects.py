@@ -260,3 +260,136 @@ class ProjectTools:
         except Exception as e:
             logger.error(f"Error getting project members for {project_id}: {e}")
             return json.dumps({"success": False, "error": str(e)})
+
+    @beartype
+    async def expel_project_member(self, project_id: str, user_id: str) -> str:
+        """
+        Remove a member from a Bitrix24 project (workgroup).
+
+        This method removes a user from a project. The current user must have sufficient
+        permissions to expel members from the project.
+
+        Args:
+            project_id: Project ID from which to remove the member (required)
+            user_id: User ID to remove from the project (required)
+
+        Returns:
+            JSON string with operation result
+
+        Example:
+            expel_project_member("123", "456")
+            # Returns: {"success": true, "project_id": "123", "user_id": "456", "message": "Member expelled successfully"}
+        """
+        try:
+            # Expel member from project
+            result = await self.client.expel_project_member(project_id, user_id)
+
+            return json.dumps(
+                {
+                    "success": result,
+                    "project_id": project_id,
+                    "user_id": user_id,
+                    "message": (
+                        "Member expelled successfully"
+                        if result
+                        else "Failed to expel member"
+                    ),
+                }
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Error expelling member {user_id} from project {project_id}: {e}"
+            )
+            return json.dumps({"success": False, "error": str(e)})
+
+    @beartype
+    async def request_join_project(
+        self, project_id: str, message: Optional[str] = None
+    ) -> str:
+        """
+        Send a request to join a Bitrix24 project (workgroup).
+
+        This method allows the current user to request membership in a project.
+        The project owner or moderators will receive the request and can approve or deny it.
+
+        Args:
+            project_id: Project ID to request joining (required)
+            message: Optional message to include with the request (optional)
+
+        Returns:
+            JSON string with operation result
+
+        Example:
+            request_join_project("123", "Please add me to the project")
+            # Returns: {"success": true, "project_id": "123", "message": "Join request sent successfully"}
+        """
+        try:
+            # Send join request
+            result = await self.client.request_join_project(project_id, message)
+
+            return json.dumps(
+                {
+                    "success": result,
+                    "project_id": project_id,
+                    "request_message": message,
+                    "message": (
+                        "Join request sent successfully"
+                        if result
+                        else "Failed to send join request"
+                    ),
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Error sending join request for project {project_id}: {e}")
+            return json.dumps({"success": False, "error": str(e)})
+
+    @beartype
+    async def invite_project_member(
+        self, project_id: str, user_id: str, message: Optional[str] = None
+    ) -> str:
+        """
+        Invite a user to join a Bitrix24 project (workgroup).
+
+        This method sends an invitation to a user to join a project. The invited user will
+        receive a notification and can accept or decline the invitation. This differs from
+        'add_project_member' which directly adds a user without their consent.
+
+        Args:
+            project_id: Project ID to invite the user to (required)
+            user_id: User ID to invite to the project (required)
+            message: Optional personal message to include with the invitation (optional)
+
+        Returns:
+            JSON string with operation result
+
+        Example:
+            invite_project_member("123", "456", "We'd like you to join our project")
+            # Returns: {"success": true, "project_id": "123", "user_id": "456", "message": "Invitation sent successfully"}
+        """
+        try:
+            # Send invitation
+            result = await self.client.invite_project_member(
+                project_id, user_id, message
+            )
+
+            return json.dumps(
+                {
+                    "success": result,
+                    "project_id": project_id,
+                    "user_id": user_id,
+                    "invitation_message": message,
+                    "message": (
+                        "Invitation sent successfully"
+                        if result
+                        else "Failed to send invitation"
+                    ),
+                }
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Error sending invitation to user {user_id} for project {project_id}: {e}"
+            )
+            return json.dumps({"success": False, "error": str(e)})

@@ -15,6 +15,9 @@ def _make_project_tools() -> Tuple[ProjectTools, MagicMock]:
     client = MagicMock()
     client.client = MagicMock()
     client.client.call = AsyncMock()
+    client.expel_project_member = AsyncMock()
+    client.request_join_project = AsyncMock()
+    client.invite_project_member = AsyncMock()
     return ProjectTools(client), client
 
 
@@ -247,6 +250,118 @@ def test_get_project_members_returns_error_on_client_error() -> None:
     client.client.call.side_effect = Exception("API error")
 
     result_json = asyncio.run(tools.get_project_members("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"
+
+
+def test_expel_project_member_calls_client_and_returns_result() -> None:
+    tools, client = _make_project_tools()
+    client.expel_project_member = AsyncMock(return_value=True)
+
+    result_json = asyncio.run(tools.expel_project_member("123", "456"))
+
+    client.expel_project_member.assert_awaited_once_with("123", "456")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["project_id"] == "123"
+    assert payload["user_id"] == "456"
+    assert payload["message"] == "Member expelled successfully"
+
+
+def test_expel_project_member_returns_error_on_client_error() -> None:
+    tools, client = _make_project_tools()
+    client.expel_project_member = AsyncMock(side_effect=Exception("API error"))
+
+    result_json = asyncio.run(tools.expel_project_member("123", "456"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"
+
+
+def test_request_join_project_calls_client_and_returns_result() -> None:
+    tools, client = _make_project_tools()
+    client.request_join_project = AsyncMock(return_value=True)
+
+    result_json = asyncio.run(tools.request_join_project("123", "Please add me"))
+
+    client.request_join_project.assert_awaited_once_with("123", "Please add me")
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["project_id"] == "123"
+    assert payload["request_message"] == "Please add me"
+    assert payload["message"] == "Join request sent successfully"
+
+
+def test_request_join_project_without_message_calls_client() -> None:
+    tools, client = _make_project_tools()
+    client.request_join_project = AsyncMock(return_value=True)
+
+    result_json = asyncio.run(tools.request_join_project("123"))
+
+    client.request_join_project.assert_awaited_once_with("123", None)
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["project_id"] == "123"
+    assert payload["request_message"] is None
+
+
+def test_request_join_project_returns_error_on_client_error() -> None:
+    tools, client = _make_project_tools()
+    client.request_join_project = AsyncMock(side_effect=Exception("API error"))
+
+    result_json = asyncio.run(tools.request_join_project("123"))
+
+    payload = json.loads(result_json)
+    assert payload["success"] is False
+    assert payload["error"] == "API error"
+
+
+def test_invite_project_member_calls_client_and_returns_result() -> None:
+    tools, client = _make_project_tools()
+    client.invite_project_member = AsyncMock(return_value=True)
+
+    result_json = asyncio.run(
+        tools.invite_project_member("123", "456", "Join our project")
+    )
+
+    client.invite_project_member.assert_awaited_once_with(
+        "123", "456", "Join our project"
+    )
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["project_id"] == "123"
+    assert payload["user_id"] == "456"
+    assert payload["invitation_message"] == "Join our project"
+    assert payload["message"] == "Invitation sent successfully"
+
+
+def test_invite_project_member_without_message_calls_client() -> None:
+    tools, client = _make_project_tools()
+    client.invite_project_member = AsyncMock(return_value=True)
+
+    result_json = asyncio.run(tools.invite_project_member("123", "456"))
+
+    client.invite_project_member.assert_awaited_once_with("123", "456", None)
+
+    payload = json.loads(result_json)
+    assert payload["success"] is True
+    assert payload["project_id"] == "123"
+    assert payload["user_id"] == "456"
+    assert payload["invitation_message"] is None
+
+
+def test_invite_project_member_returns_error_on_client_error() -> None:
+    tools, client = _make_project_tools()
+    client.invite_project_member = AsyncMock(side_effect=Exception("API error"))
+
+    result_json = asyncio.run(tools.invite_project_member("123", "456"))
 
     payload = json.loads(result_json)
     assert payload["success"] is False
