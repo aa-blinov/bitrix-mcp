@@ -541,6 +541,73 @@ bitrix-mcp/
     └── copilot-instructions.md
 ```
 
+## TODO - Future Enhancements
+
+This section lists Bitrix24 API methods that are not yet implemented in the MCP server. Currently, **50 methods are implemented** across CRM, Tasks, Calendar, and Projects. The remaining **~63 methods** are prioritized below by importance and impact.
+
+### 🔴 High Priority (Core Functionality)
+
+#### CRM Entity Relationships
+
+- **crm.lead.contact.add/items.get/items.set/items.delete**: Link/unlink contacts to leads
+- **crm.deal.contact.items.get/items.set/items.delete**: Link/unlink contacts to deals
+- **crm.contact.company.add/items.get/items.set/items.delete**: Link/unlink companies to contacts
+- **crm.company.contact.add/items.get/items.set/items.delete**: Link/unlink contacts to companies
+
+#### Custom Fields Management
+
+- **crm.lead.userfield.add/list/delete**: Manage custom fields for leads
+- **crm.deal.userfield.add/list/delete**: Manage custom fields for deals
+- **crm.contact.userfield.add/list/delete**: Manage custom fields for contacts
+- **crm.company.userfield.add/list/delete**: Manage custom fields for companies
+
+#### Task Dependencies & Comments
+
+- **task.dependence.add/delete**: Create/delete task dependencies
+- **task.comment.add**: Add comments to tasks
+
+### 🟡 Medium Priority (Enhanced Features)
+
+#### Task Lifecycle Management
+
+- **tasks.task.pause**: Pause task execution
+- **tasks.task.defer**: Defer task execution
+- **tasks.task.stopwatch**: Stop watching a task
+
+#### Calendar Management
+
+- **calendar.section.add/update**: Create/update calendar sections
+- **calendar.resource.add/list/update**: Manage calendar resources
+- **calendar.settings.get**: Get calendar settings
+- **calendar.user.settings.get/set**: Manage user calendar preferences
+- **calendar.accessibility.get**: Check user availability
+
+#### CRM Card Configurations
+
+- **crm.lead.details.configuration.get/set/reset/forceCommonScopeForAll**: Manage lead card layouts
+- **crm.deal.details.configuration.get/set/reset/forceCommonScopeForAll**: Manage deal card layouts
+- **crm.contact.details.configuration.get/set/reset/forceCommonScopeForAll**: Manage contact card layouts
+- **crm.company.details.configuration.get/set/reset/forceCommonScopeForAll**: Manage company card layouts
+
+#### Project Management
+
+- **sonet_group.setowner**: Change project owner
+- **sonet_group.user.groups**: Get user's groups
+- **sonet_group.feature.access**: Check group access permissions
+
+### 🟢 Low Priority (Deletion & Cleanup)
+
+#### Entity Deletion
+
+- **crm.lead.delete**: Delete leads
+- **crm.deal.delete**: Delete deals
+- **crm.contact.delete**: Delete contacts
+- **crm.company.delete**: Delete companies
+- **tasks.task.delete**: Delete tasks
+- **calendar.section.delete**: Delete calendar sections
+- **calendar.resource.delete**: Delete calendar resources
+- **sonet_group.delete**: Delete projects/workgroups
+
 ## Development
 
 ### Installing Development Dependencies
