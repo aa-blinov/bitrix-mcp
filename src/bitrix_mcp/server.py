@@ -103,7 +103,12 @@ def create_server() -> FastMCP:
     _, mcp_config = get_config()
 
     # Create FastMCP server
-    mcp = BitrixFastMCP(name=mcp_config.server_name, lifespan=app_lifespan)
+    mcp = BitrixFastMCP(
+        name=mcp_config.server_name,
+        host=mcp_config.host,
+        port=mcp_config.port,
+        lifespan=app_lifespan,
+    )
 
     def register_tool(title: str, description: str):
         """Wrap FastMCP.tool with consistent title/description metadata."""
@@ -1110,7 +1115,7 @@ def main() -> None:
         mcp.run()
     elif args.transport in ["streamable-http", "sse"]:
         # Run with HTTP transport
-        mcp.run(transport=args.transport, port=args.port, host=args.host)
+        mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":
