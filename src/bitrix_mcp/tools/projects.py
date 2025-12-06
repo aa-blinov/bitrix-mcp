@@ -22,7 +22,6 @@ class ProjectTools:
     async def get_projects(
         self,
         filter_params: Optional[str] = None,
-        order: Optional[str] = None,
         limit: int = 50,
     ) -> str:
         """
@@ -30,41 +29,40 @@ class ProjectTools:
 
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"ACTIVE": "Y"}')
-            order: JSON string with order conditions (e.g., '{"NAME": "ASC"}')
             limit: Maximum number of projects to return (default: 50)
 
         Returns:
             JSON string with projects data
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         try:
             # Parse parameters
-            filter_dict = json.loads(filter_params) if filter_params else None
-            order_dict = json.loads(order) if order else None
+            filter_dict = json.loads(filter_params) if filter_params else {}
 
             params = {}
             if filter_dict:
                 params["FILTER"] = filter_dict
-            if order_dict:
-                params["ORDER"] = order_dict
 
-            # Avoid passing empty dictionaries that fast_bitrix24 rejects
-            call_params = params if params else None
-
-            # Get projects (using sonet_group methods for workgroups)
-            projects = await self.client.client.call("sonet_group.get", call_params)
+            # Use get_all for automatic pagination
+            projects = await self.client.client.get_all(
+                "sonet_group.get", params if params else {}
+            )
 
             # Limit results
-            if limit > 0 and projects and isinstance(projects[0], list):
-                projects[0] = projects[0][:limit]
+            if limit > 0 and projects:
+                projects = projects[:limit]
+
+            # Add total count
+            total = len(projects) if projects else 0
 
             result = {
                 "success": True,
-                "count": (
-                    len(projects[0])
-                    if projects and isinstance(projects[0], list)
-                    else 0
-                ),
-                "projects": projects[0] if projects else [],
+                "total": total,
+                "count": total,
+                "projects": projects if projects else [],
             }
 
             return json.dumps(result, ensure_ascii=False, indent=2)
@@ -155,33 +153,20 @@ class ProjectTools:
             JSON string with project tasks
         """
         try:
-            # Get tasks for project
-            tasks = await self.client.client.call(
+            # Get tasks for project using get_all for proper pagination
+            tasks_list = await self.client.client.get_all(
                 "tasks.task.list", {"filter": {"GROUP_ID": project_id}}
             )
 
             # Limit results
-            if (
-                limit > 0
-                and tasks
-                and isinstance(tasks[0], dict)
-                and "tasks" in tasks[0]
-            ):
-                tasks[0]["tasks"] = tasks[0]["tasks"][:limit]
+            if limit > 0 and tasks_list:
+                tasks_list = tasks_list[:limit]
 
             result = {
                 "success": True,
                 "project_id": project_id,
-                "count": (
-                    len(tasks[0].get("tasks", []))
-                    if tasks and isinstance(tasks[0], dict)
-                    else 0
-                ),
-                "tasks": (
-                    tasks[0].get("tasks", [])
-                    if tasks and isinstance(tasks[0], dict)
-                    else []
-                ),
+                "count": len(tasks_list) if tasks_list else 0,
+                "tasks": tasks_list if tasks_list else [],
             }
 
             return json.dumps(result, ensure_ascii=False, indent=2)
@@ -244,15 +229,16 @@ class ProjectTools:
             JSON string with project members
         """
         try:
-            # Get project members
-            members = await self.client.client.call(
+            # Get project members using get_all
+            members_list = await self.client.client.get_all(
                 "sonet_group.user.get", {"ID": project_id}
             )
 
             result = {
                 "success": True,
                 "project_id": project_id,
-                "members": members[0] if members else [],
+                "count": len(members_list) if members_list else 0,
+                "members": members_list if members_list else [],
             }
 
             return json.dumps(result, ensure_ascii=False, indent=2)

@@ -33,7 +33,6 @@ def test_get_contacts_parses_filters_and_limits() -> None:
         tools.get_contacts(
             filter_params='{"HAS_EMAIL": "Y"}',
             select_fields="ID,NAME,LAST_NAME,EMAIL",
-            order='{"DATE_CREATE": "DESC"}',
             limit=1,
         )
     )
@@ -41,7 +40,6 @@ def test_get_contacts_parses_filters_and_limits() -> None:
     client.get_contacts.assert_awaited_once_with(
         filter_params={"HAS_EMAIL": "Y"},
         select_fields=["ID", "NAME", "LAST_NAME", "EMAIL"],
-        order={"DATE_CREATE": "DESC"},
     )
 
     payload = json.loads(result_json)
@@ -73,7 +71,6 @@ def test_get_contacts_preserves_results_when_limit_zero() -> None:
     client.get_contacts.assert_awaited_once_with(
         filter_params=None,
         select_fields=None,
-        order=None,
     )
 
     payload = json.loads(result_json)

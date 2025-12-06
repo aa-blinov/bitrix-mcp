@@ -128,12 +128,11 @@ def create_server() -> FastMCP:
     # Lead tools
     @register_tool(
         "Get Leads",
-        'Retrieve Bitrix24 leads with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"STATUS_ID": "NEW"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,NAME,EMAIL\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of leads to return (default: 50)\n\n**Example request:** get_leads(filter_params=\'{"STATUS_ID": "NEW"}\', select_fields=\'ID,TITLE,NAME\', limit=10)\n\n**Returns:** JSON with leads data.',
+        "Retrieve Bitrix24 leads with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., '{\"STATUS_ID\": \"NEW\"}')\n- select_fields: Comma-separated field names (e.g., 'ID,TITLE,NAME,EMAIL')\n- limit: Maximum number of leads to return (default: 50)\n\n**Note:** ORDER parameter is not supported as the API uses automatic pagination.\n\n**Example request:** get_leads(filter_params='{\"STATUS_ID\": \"NEW\"}', select_fields='ID,TITLE,NAME', limit=10)\n\n**Returns:** JSON with leads data.",
     )
     async def get_leads(
         filter_params: str = "",
         select_fields: str = "",
-        order: str = "",
         limit: int = 50,
         *,
         context: Context,
@@ -144,12 +143,15 @@ def create_server() -> FastMCP:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"STATUS_ID": "NEW"}')
             select_fields: Comma-separated field names (e.g., 'ID,TITLE,NAME,EMAIL')
-            order: JSON string with order conditions (e.g., '{"DATE_CREATE": "DESC"}')
             limit: Maximum number of leads to return (default: 50)
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.lead_tools.get_leads(
-            filter_params or None, select_fields or None, order or None, limit
+            filter_params or None, select_fields or None, limit
         )
 
     @register_tool(
@@ -218,12 +220,11 @@ def create_server() -> FastMCP:
     # Deal tools
     @register_tool(
         "Get Deals",
-        'List Bitrix24 deals with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"STAGE_ID": "NEW"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,OPPORTUNITY,STAGE_ID\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of deals to return (default: 50)\n\n**Example request:** get_deals(filter_params=\'{"STAGE_ID": "NEW"}\', select_fields=\'ID,TITLE,OPPORTUNITY\', limit=10)\n\n**Returns:** JSON with deals data.',
+        "List Bitrix24 deals with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., '{\"STAGE_ID\": \"NEW\"}')\n- select_fields: Comma-separated field names (e.g., 'ID,TITLE,OPPORTUNITY,STAGE_ID')\n- limit: Maximum number of deals to return (default: 50)\n\n**Note:** ORDER parameter is not supported as the API uses automatic pagination.\n\n**Example request:** get_deals(filter_params='{\"STAGE_ID\": \"NEW\"}', select_fields='ID,TITLE,OPPORTUNITY', limit=10)\n\n**Returns:** JSON with deals data.",
     )
     async def get_deals(
         filter_params: str = "",
         select_fields: str = "",
-        order: str = "",
         limit: int = 50,
         *,
         context: Context,
@@ -234,12 +235,15 @@ def create_server() -> FastMCP:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"STAGE_ID": "NEW"}')
             select_fields: Comma-separated field names (e.g., 'ID,TITLE,OPPORTUNITY,STAGE_ID')
-            order: JSON string with order conditions (e.g., '{"DATE_CREATE": "DESC"}')
             limit: Maximum number of deals to return (default: 50)
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.deal_tools.get_deals(
-            filter_params or None, select_fields or None, order or None, limit
+            filter_params or None, select_fields or None, limit
         )
 
     @register_tool(
@@ -305,12 +309,11 @@ def create_server() -> FastMCP:
     # Contact tools
     @register_tool(
         "Get Contacts",
-        'List Bitrix24 contacts with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"HAS_EMAIL": "Y"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,NAME,LAST_NAME,EMAIL,PHONE\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of contacts to return (default: 50)\n\n**Example request:** get_contacts(filter_params=\'{"HAS_EMAIL": "Y"}\', select_fields=\'ID,NAME,EMAIL\', limit=10)\n\n**Returns:** JSON with contacts data.',
+        "List Bitrix24 contacts with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., '{\"HAS_EMAIL\": \"Y\"}')\n- select_fields: Comma-separated field names (e.g., 'ID,NAME,LAST_NAME,EMAIL,PHONE')\n- limit: Maximum number of contacts to return (default: 50)\n\n**Note:** ORDER parameter is not supported as the API uses automatic pagination.\n\n**Example request:** get_contacts(filter_params='{\"HAS_EMAIL\": \"Y\"}', select_fields='ID,NAME,EMAIL', limit=10)\n\n**Returns:** JSON with contacts data.",
     )
     async def get_contacts(
         filter_params: str = "",
         select_fields: str = "",
-        order: str = "",
         limit: int = 50,
         *,
         context: Context,
@@ -321,12 +324,15 @@ def create_server() -> FastMCP:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"HAS_EMAIL": "Y"}')
             select_fields: Comma-separated field names (e.g., 'ID,NAME,LAST_NAME,EMAIL,PHONE')
-            order: JSON string with order conditions (e.g., '{"DATE_CREATE": "DESC"}')
             limit: Maximum number of contacts to return (default: 50)
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.contact_tools.get_contacts(
-            filter_params or None, select_fields or None, order or None, limit
+            filter_params or None, select_fields or None, limit
         )
 
     @register_tool(
@@ -392,12 +398,11 @@ def create_server() -> FastMCP:
     # Company tools
     @register_tool(
         "Get Companies",
-        'List Bitrix24 companies with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"HAS_EMAIL": "Y"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,EMAIL,PHONE\')\n- order: JSON string with order conditions (e.g., \'{"DATE_CREATE": "DESC"}\')\n- limit: Maximum number of companies to return (default: 50)\n\n**Example request:** get_companies(filter_params=\'{"HAS_EMAIL": "Y"}\', select_fields=\'ID,TITLE,EMAIL\', limit=10)\n\n**Returns:** JSON with companies data.',
+        "List Bitrix24 companies with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., '{\"HAS_EMAIL\": \"Y\"}')\n- select_fields: Comma-separated field names (e.g., 'ID,TITLE,EMAIL,PHONE')\n- limit: Maximum number of companies to return (default: 50)\n\n**Note:** ORDER parameter is not supported as the API uses automatic pagination.\n\n**Example request:** get_companies(filter_params='{\"HAS_EMAIL\": \"Y\"}', select_fields='ID,TITLE,EMAIL', limit=10)\n\n**Returns:** JSON with companies data.",
     )
     async def get_companies(
         filter_params: str = "",
         select_fields: str = "",
-        order: str = "",
         limit: int = 50,
         *,
         context: Context,
@@ -408,12 +413,15 @@ def create_server() -> FastMCP:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"HAS_EMAIL": "Y"}')
             select_fields: Comma-separated field names (e.g., 'ID,TITLE,EMAIL,PHONE')
-            order: JSON string with order conditions (e.g., '{"DATE_CREATE": "DESC"}')
             limit: Maximum number of companies to return (default: 50)
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.company_tools.get_companies(
-            filter_params or None, select_fields or None, order or None, limit
+            filter_params or None, select_fields or None, limit
         )
 
     @register_tool(
@@ -479,12 +487,11 @@ def create_server() -> FastMCP:
     # Task tools
     @register_tool(
         "Get Tasks",
-        'List Bitrix24 tasks with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"STATUS": "2"}\')\n- select_fields: Comma-separated field names (e.g., \'ID,TITLE,DESCRIPTION,STATUS,RESPONSIBLE_ID\')\n- order: JSON string with order conditions (e.g., \'{"CREATED_DATE": "DESC"}\')\n- limit: Maximum number of tasks to return (default: 50)\n\n**Example request:** get_tasks(filter_params=\'{"STATUS": "2"}\', select_fields=\'ID,TITLE,RESPONSIBLE_ID\', limit=10)\n\n**Returns:** JSON with tasks data.',
+        "List Bitrix24 tasks with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., '{\"STATUS\": \"2\"}')\n- select_fields: Comma-separated field names (e.g., 'ID,TITLE,DESCRIPTION,STATUS,RESPONSIBLE_ID')\n- limit: Maximum number of tasks to return (default: 50)\n\n**Note:** ORDER parameter is not supported as the API uses automatic pagination.\n\n**Example request:** get_tasks(filter_params='{\"STATUS\": \"2\"}', select_fields='ID,TITLE,RESPONSIBLE_ID', limit=10)\n\n**Returns:** JSON with tasks data.",
     )
     async def get_tasks(
         filter_params: str = "",
         select_fields: str = "",
-        order: str = "",
         limit: int = 50,
         *,
         context: Context,
@@ -495,12 +502,15 @@ def create_server() -> FastMCP:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"STATUS": "2"}' for in progress)
             select_fields: Comma-separated field names (e.g., 'ID,TITLE,DESCRIPTION,STATUS,RESPONSIBLE_ID')
-            order: JSON string with order conditions (e.g., '{"CREATED_DATE": "DESC"}')
             limit: Maximum number of tasks to return (default: 50)
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         app_ctx = _get_app_context(context)
         return await app_ctx.task_tools.get_tasks(
-            filter_params or None, select_fields or None, order or None, limit
+            filter_params or None, select_fields or None, limit
         )
 
     @register_tool(
@@ -891,11 +901,10 @@ def create_server() -> FastMCP:
     # Project tools
     @register_tool(
         "Get Projects",
-        'List Bitrix24 projects (workgroups) with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions (e.g., \'{"ACTIVE": "Y"}\')\n- order: JSON string with order conditions (e.g., \'{"NAME": "ASC"}\')\n- limit: Maximum number of projects to return (default: 50)\n\n**Example request:** get_projects(filter_params=\'{"ACTIVE": "Y"}\', limit=10)\n\n**Returns:** JSON with projects data.',
+        'List Bitrix24 projects (workgroups) with optional filters.\n\n**Required attributes:** None\n\n**Optional attributes:**\n- filter_params: JSON string with filter conditions\n  - ACTIVE: "Y" or "N" - filter by active status\n  - VISIBLE: "Y" or "N" - filter by visibility\n  - OPENED: "Y" or "N" - filter by open/closed status\n  - CLOSED: "Y" or "N" - filter by closed status\n  - ID: project ID - filter by specific ID\n  - ?NAME: search pattern - partial name match (e.g., \'{"?NAME": "Sales"}\')\n  - Multiple filters can be combined (e.g., \'{"ACTIVE": "Y", "VISIBLE": "Y"}\')\n- limit: Maximum number of projects to return (default: 50, 0 = unlimited)\n\n**Note:** ORDER parameter is not supported as the API uses automatic pagination.\n\n**Example requests:**\n- get_projects(filter_params=\'{"ACTIVE": "Y"}\', limit=10)\n- get_projects(filter_params=\'{"ACTIVE": "Y", "VISIBLE": "Y"}\')\n- get_projects(filter_params=\'{"?NAME": "Sales"}\')\n- get_projects(filter_params=\'{"ID": "77"}\')\n\n**Returns:** JSON with projects data including ID, NAME, ACTIVE, VISIBLE, OPENED, CLOSED, NUMBER_OF_MEMBERS, etc.',
     )
     async def get_projects(
         filter_params: str = "",
-        order: str = "",
         limit: int = 50,
         *,
         context: Context,
@@ -905,13 +914,14 @@ def create_server() -> FastMCP:
 
         Args:
             filter_params: JSON string with filter conditions (optional, e.g., '{"ACTIVE": "Y"}')
-            order: JSON string with order conditions (optional, e.g., '{"NAME": "ASC"}')
             limit: Maximum number of projects to return (default: 50)
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         app_ctx = _get_app_context(context)
-        return await app_ctx.project_tools.get_projects(
-            filter_params or None, order or None, limit
-        )
+        return await app_ctx.project_tools.get_projects(filter_params or None, limit)
 
     @register_tool(
         "Create Project",

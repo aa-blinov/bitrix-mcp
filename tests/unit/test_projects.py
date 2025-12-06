@@ -15,6 +15,7 @@ def _make_project_tools() -> Tuple[ProjectTools, MagicMock]:
     client = MagicMock()
     client.client = MagicMock()
     client.client.call = AsyncMock()
+    client.client.get_all = AsyncMock()
     client.expel_project_member = AsyncMock()
     client.request_join_project = AsyncMock()
     client.invite_project_member = AsyncMock()
@@ -23,27 +24,21 @@ def _make_project_tools() -> Tuple[ProjectTools, MagicMock]:
 
 def test_get_projects_parses_filters_and_limits() -> None:
     tools, client = _make_project_tools()
-    client.client.call.return_value = [
-        [
-            {"id": 1, "name": "First Project"},
-            {"id": 2, "name": "Second Project"},
-        ]
+    client.client.get_all.return_value = [
+        {"id": 1, "name": "First Project"},
+        {"id": 2, "name": "Second Project"},
     ]
 
     result_json = asyncio.run(
         tools.get_projects(
             filter_params='{"ACTIVE": "Y"}',
-            order='{"NAME": "ASC"}',
             limit=1,
         )
     )
 
-    client.client.call.assert_awaited_once_with(
+    client.client.get_all.assert_awaited_once_with(
         "sonet_group.get",
-        {
-            "FILTER": {"ACTIVE": "Y"},
-            "ORDER": {"NAME": "ASC"},
-        },
+        {"FILTER": {"ACTIVE": "Y"}},
     )
 
     payload = json.loads(result_json)
@@ -57,7 +52,7 @@ def test_get_projects_returns_error_on_invalid_filter_json() -> None:
 
     result_json = asyncio.run(tools.get_projects(filter_params="{bad}"))
 
-    client.client.call.assert_not_called()
+    client.client.get_all.assert_not_called()
     payload = json.loads(result_json)
     assert payload["success"] is False
     assert payload["error"]  # error message should be present
@@ -65,16 +60,14 @@ def test_get_projects_returns_error_on_invalid_filter_json() -> None:
 
 def test_get_projects_preserves_results_when_limit_zero() -> None:
     tools, client = _make_project_tools()
-    client.client.call.return_value = [
-        [
-            {"id": 1},
-            {"id": 2},
-        ]
+    client.client.get_all.return_value = [
+        {"id": 1},
+        {"id": 2},
     ]
 
     result_json = asyncio.run(tools.get_projects(limit=0))
 
-    client.client.call.assert_awaited_once_with("sonet_group.get", None)
+    client.client.get_all.assert_awaited_once_with("sonet_group.get", {})
 
     payload = json.loads(result_json)
     assert payload["success"] is True
@@ -152,18 +145,14 @@ def test_update_project_returns_error_on_invalid_json() -> None:
 
 def test_get_project_tasks_calls_client_and_returns_result() -> None:
     tools, client = _make_project_tools()
-    client.client.call.return_value = [
-        {
-            "tasks": [
-                {"id": 1, "title": "Task 1"},
-                {"id": 2, "title": "Task 2"},
-            ]
-        }
+    client.client.get_all.return_value = [
+        {"id": 1, "title": "Task 1"},
+        {"id": 2, "title": "Task 2"},
     ]
 
     result_json = asyncio.run(tools.get_project_tasks("123", limit=1))
 
-    client.client.call.assert_awaited_once_with(
+    client.client.get_all.assert_awaited_once_with(
         "tasks.task.list",
         {"filter": {"GROUP_ID": "123"}},
     )
@@ -177,7 +166,7 @@ def test_get_project_tasks_calls_client_and_returns_result() -> None:
 
 def test_get_project_tasks_returns_error_on_client_error() -> None:
     tools, client = _make_project_tools()
-    client.client.call.side_effect = Exception("API error")
+    client.client.get_all.side_effect = Exception("API error")
 
     result_json = asyncio.run(tools.get_project_tasks("123"))
 
@@ -222,16 +211,14 @@ def test_add_project_member_returns_error_on_client_error() -> None:
 
 def test_get_project_members_calls_client_and_returns_result() -> None:
     tools, client = _make_project_tools()
-    client.client.call.return_value = [
-        [
-            {"USER_ID": "1", "ROLE": "A"},
-            {"USER_ID": "2", "ROLE": "K"},
-        ]
+    client.client.get_all.return_value = [
+        {"USER_ID": "1", "ROLE": "A"},
+        {"USER_ID": "2", "ROLE": "K"},
     ]
 
     result_json = asyncio.run(tools.get_project_members("123"))
 
-    client.client.call.assert_awaited_once_with(
+    client.client.get_all.assert_awaited_once_with(
         "sonet_group.user.get",
         {"ID": "123"},
     )
@@ -239,6 +226,7 @@ def test_get_project_members_calls_client_and_returns_result() -> None:
     payload = json.loads(result_json)
     assert payload["success"] is True
     assert payload["project_id"] == "123"
+    assert payload["count"] == 2
     assert payload["members"] == [
         {"USER_ID": "1", "ROLE": "A"},
         {"USER_ID": "2", "ROLE": "K"},
@@ -247,7 +235,7 @@ def test_get_project_members_calls_client_and_returns_result() -> None:
 
 def test_get_project_members_returns_error_on_client_error() -> None:
     tools, client = _make_project_tools()
-    client.client.call.side_effect = Exception("API error")
+    client.client.get_all.side_effect = Exception("API error")
 
     result_json = asyncio.run(tools.get_project_members("123"))
 

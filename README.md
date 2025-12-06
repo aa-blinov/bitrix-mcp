@@ -420,11 +420,50 @@ uv run python test_server.py
   "tool": "get_projects",
   "arguments": {
     "filter_params": "{\"ACTIVE\": \"Y\"}",
-    "order": "{\"NAME\": \"ASC\"}",
     "limit": 10
   }
 }
 ```
+
+**Available filters:**
+
+- `ACTIVE`: "Y" or "N" - filter by active status
+- `VISIBLE`: "Y" or "N" - filter by visibility
+- `OPENED`: "Y" or "N" - filter by open/closed for joining
+- `CLOSED`: "Y" or "N" - filter by closed status
+- `ID`: project ID - get specific project
+- `?NAME`: search pattern - partial name match
+
+**Filter examples:**
+
+```json
+// Active and visible projects
+{
+  "tool": "get_projects",
+  "arguments": {
+    "filter_params": "{\"ACTIVE\": \"Y\", \"VISIBLE\": \"Y\"}",
+    "limit": 20
+  }
+}
+
+// Search by name pattern
+{
+  "tool": "get_projects",
+  "arguments": {
+    "filter_params": "{\"?NAME\": \"Sales\"}"
+  }
+}
+
+// Get specific project
+{
+  "tool": "get_projects",
+  "arguments": {
+    "filter_params": "{\"ID\": \"77\"}"
+  }
+}
+```
+
+**Note:** ORDER parameter is not supported with pagination. Results are returned without specific ordering.
 
 #### Creating a Project
 

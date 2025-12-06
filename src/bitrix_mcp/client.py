@@ -98,20 +98,18 @@ class BitrixClient:
         self,
         filter_params: Optional[JSONDict] = None,
         select_fields: Optional[list[str]] = None,
-        order: Optional[JSONDict] = None,
-        start: int = 0,
     ) -> JSONList:
-        """Get leads from Bitrix24."""
-        params = {
-            "start": start,
-        }
+        """Get leads from Bitrix24.
+
+        Note: Uses get_all() which handles pagination automatically.
+        ORDER parameter is not supported as it conflicts with automatic pagination.
+        """
+        params = {}
 
         if filter_params:
             params["filter"] = filter_params
         if select_fields:
             params["select"] = select_fields
-        if order:
-            params["order"] = order
 
         return await self.client.get_all("crm.lead.list", params=params)
 
@@ -140,20 +138,18 @@ class BitrixClient:
         self,
         filter_params: Optional[JSONDict] = None,
         select_fields: Optional[list[str]] = None,
-        order: Optional[JSONDict] = None,
-        start: int = 0,
     ) -> JSONList:
-        """Get deals from Bitrix24."""
-        params = {
-            "start": start,
-        }
+        """Get deals from Bitrix24.
+
+        Note: Uses get_all() which handles pagination automatically.
+        ORDER parameter is not supported as it conflicts with automatic pagination.
+        """
+        params = {}
 
         if filter_params:
             params["filter"] = filter_params
         if select_fields:
             params["select"] = select_fields
-        if order:
-            params["order"] = order
 
         return await self.client.get_all("crm.deal.list", params=params)
 
@@ -182,20 +178,18 @@ class BitrixClient:
         self,
         filter_params: Optional[JSONDict] = None,
         select_fields: Optional[list[str]] = None,
-        order: Optional[JSONDict] = None,
-        start: int = 0,
     ) -> JSONList:
-        """Get contacts from Bitrix24."""
-        params = {
-            "start": start,
-        }
+        """Get contacts from Bitrix24.
+
+        Note: Uses get_all() which handles pagination automatically.
+        ORDER parameter is not supported as it conflicts with automatic pagination.
+        """
+        params = {}
 
         if filter_params:
             params["filter"] = filter_params
         if select_fields:
             params["select"] = select_fields
-        if order:
-            params["order"] = order
 
         return await self.client.get_all("crm.contact.list", params=params)
 
@@ -226,20 +220,18 @@ class BitrixClient:
         self,
         filter_params: Optional[JSONDict] = None,
         select_fields: Optional[list[str]] = None,
-        order: Optional[JSONDict] = None,
-        start: int = 0,
     ) -> JSONList:
-        """Get companies from Bitrix24."""
-        params = {
-            "start": start,
-        }
+        """Get companies from Bitrix24.
+
+        Note: Uses get_all() which handles pagination automatically.
+        ORDER parameter is not supported as it conflicts with automatic pagination.
+        """
+        params = {}
 
         if filter_params:
             params["filter"] = filter_params
         if select_fields:
             params["select"] = select_fields
-        if order:
-            params["order"] = order
 
         return await self.client.get_all("crm.company.list", params=params)
 
@@ -272,20 +264,18 @@ class BitrixClient:
         self,
         filter_params: Optional[JSONDict] = None,
         select_fields: Optional[list[str]] = None,
-        order: Optional[JSONDict] = None,
-        start: int = 0,
     ) -> JSONList:
-        """Get tasks from Bitrix24."""
-        params = {
-            "start": start,
-        }
+        """Get tasks from Bitrix24.
+
+        Note: Uses get_all() which handles pagination automatically.
+        ORDER parameter is not supported as it conflicts with automatic pagination.
+        """
+        params = {}
 
         if filter_params:
             params["filter"] = filter_params
         if select_fields:
             params["select"] = select_fields
-        if order:
-            params["order"] = order
 
         return await self.client.get_all("tasks.task.list", params=params)
 
@@ -452,19 +442,18 @@ class BitrixClient:
     # Project (Workgroup) Methods
 
     @beartype
-    async def get_projects(
-        self, filter_params: Optional[JSONDict] = None, order: Optional[JSONDict] = None
-    ) -> JSONList:
-        """Get projects (workgroups) from Bitrix24."""
+    async def get_projects(self, filter_params: Optional[JSONDict] = None) -> JSONList:
+        """Get projects (workgroups) from Bitrix24.
+
+        Note: Uses get_all() which handles pagination automatically.
+        ORDER parameter is not supported as it conflicts with automatic pagination.
+        """
         params = {}
 
         if filter_params:
             params["filter"] = filter_params
-        if order:
-            params["order"] = order
 
-        result = await self.client.call("sonet_group.get", params)
-        return result[0] if result and isinstance(result[0], list) else []
+        return await self.client.get_all("sonet_group.get", params)
 
     @beartype
     async def create_project(self, fields: JSONDict) -> JSONDict:

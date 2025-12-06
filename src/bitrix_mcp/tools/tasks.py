@@ -23,7 +23,6 @@ class TaskTools:
         self,
         filter_params: Optional[str] = None,
         select_fields: Optional[str] = None,
-        order: Optional[str] = None,
         limit: int = 50,
     ) -> str:
         """
@@ -32,29 +31,24 @@ class TaskTools:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"STATUS": "2"}' for in progress)
             select_fields: Comma-separated field names (e.g., 'ID,TITLE,DESCRIPTION,STATUS,RESPONSIBLE_ID')
-            order: JSON string with order conditions (e.g., '{"CREATED_DATE": "DESC"}')
             limit: Maximum number of tasks to return (default: 50)
 
         Returns:
             JSON string with tasks data
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         try:
             # Parse parameters
             filter_dict = json.loads(filter_params) if filter_params else None
             select_list = select_fields.split(",") if select_fields else None
-            order_dict = json.loads(order) if order else None
 
-            # Prepare parameters, only including defined values
-            params: dict[str, Any] = {}
-            if filter_dict is not None:
-                params["filter"] = filter_dict
-            if select_list is not None:
-                params["select"] = select_list
-            if order_dict is not None:
-                params["order"] = order_dict
-
-            # Get tasks
-            tasks = await self.client.get_all("tasks.task.list", params=params or None)
+            # Get tasks (using get_tasks from client which uses get_all internally)
+            tasks = await self.client.get_tasks(
+                filter_params=filter_dict, select_fields=select_list
+            )
 
             # Limit results
             if limit > 0:

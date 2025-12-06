@@ -23,7 +23,6 @@ class LeadTools:
         self,
         filter_params: Optional[str] = None,
         select_fields: Optional[str] = None,
-        order: Optional[str] = None,
         limit: int = 50,
     ) -> str:
         """
@@ -32,21 +31,23 @@ class LeadTools:
         Args:
             filter_params: JSON string with filter conditions (e.g., '{"STATUS_ID": "NEW"}')
             select_fields: Comma-separated field names (e.g., 'ID,TITLE,NAME,EMAIL')
-            order: JSON string with order conditions (e.g., '{"DATE_CREATE": "DESC"}')
             limit: Maximum number of leads to return (default: 50)
 
         Returns:
             JSON string with leads data
+
+        Note:
+            ORDER parameter is not supported because the underlying API uses
+            automatic pagination which is incompatible with custom ordering.
         """
         try:
             # Parse parameters
             filter_dict = json.loads(filter_params) if filter_params else None
             select_list = select_fields.split(",") if select_fields else None
-            order_dict = json.loads(order) if order else None
 
-            # Get leads
+            # Get leads (using get_all which handles pagination automatically)
             leads = await self.client.get_leads(
-                filter_params=filter_dict, select_fields=select_list, order=order_dict
+                filter_params=filter_dict, select_fields=select_list
             )
 
             # Limit results

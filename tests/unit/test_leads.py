@@ -33,7 +33,6 @@ def test_get_leads_parses_filters_and_limits() -> None:
         tools.get_leads(
             filter_params='{"STATUS_ID": "NEW"}',
             select_fields="ID,TITLE",
-            order='{"DATE_CREATE": "DESC"}',
             limit=1,
         )
     )
@@ -41,7 +40,6 @@ def test_get_leads_parses_filters_and_limits() -> None:
     client.get_leads.assert_awaited_once_with(
         filter_params={"STATUS_ID": "NEW"},
         select_fields=["ID", "TITLE"],
-        order={"DATE_CREATE": "DESC"},
     )
 
     payload = json.loads(result_json)
@@ -73,7 +71,6 @@ def test_get_leads_preserves_results_when_limit_zero() -> None:
     client.get_leads.assert_awaited_once_with(
         filter_params=None,
         select_fields=None,
-        order=None,
     )
 
     payload = json.loads(result_json)
