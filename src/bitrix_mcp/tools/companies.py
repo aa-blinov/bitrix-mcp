@@ -7,6 +7,7 @@ from typing import Optional
 from beartype import beartype
 
 from ..client import BitrixClient
+from ..utils import parse_json_safe, build_error_response, build_success_response
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,11 @@ class CompanyTools:
         """
         try:
             # Parse parameters
-            filter_dict = json.loads(filter_params) if filter_params else None
+            filter_dict, error = parse_json_safe(filter_params, "filter_params")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
+
             select_list = select_fields.split(",") if select_fields else None
 
             # Get companies (using get_all which handles pagination automatically)
@@ -56,11 +61,11 @@ class CompanyTools:
 
             result = {"success": True, "count": len(companies), "companies": companies}
 
-            return json.dumps(result, ensure_ascii=False, indent=2)
+            return build_success_response(result)
 
         except Exception as e:
             logger.error(f"Error getting companies: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def create_company(self, fields: str) -> str:
@@ -74,13 +79,20 @@ class CompanyTools:
             JSON string with creation result
         """
         try:
+            # Validate fields is not empty
+            if not fields:
+                return build_error_response("fields parameter is required")
+
             # Parse fields
-            fields_dict = json.loads(fields)
+            fields_dict, error = parse_json_safe(fields, "fields")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
 
             # Create company
             result = await self.client.create_company(fields_dict)
 
-            return json.dumps(
+            return build_success_response(
                 {
                     "success": True,
                     "company_id": result.get("result"),
@@ -90,7 +102,7 @@ class CompanyTools:
 
         except Exception as e:
             logger.error(f"Error creating company: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def update_company(self, company_id: str, fields: str) -> str:
@@ -105,13 +117,20 @@ class CompanyTools:
             JSON string with update result
         """
         try:
+            # Validate fields is not empty
+            if not fields:
+                return build_error_response("fields parameter is required")
+
             # Parse fields
-            fields_dict = json.loads(fields)
+            fields_dict, error = parse_json_safe(fields, "fields")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
 
             # Update company
             success = await self.client.update_company(company_id, fields_dict)
 
-            return json.dumps(
+            return build_success_response(
                 {
                     "success": success,
                     "company_id": company_id,
@@ -125,7 +144,7 @@ class CompanyTools:
 
         except Exception as e:
             logger.error(f"Error updating company {company_id}: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def get_company(self, company_id: str) -> str:

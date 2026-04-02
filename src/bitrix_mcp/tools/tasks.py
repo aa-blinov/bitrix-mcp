@@ -2,11 +2,12 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Optional
 
 from beartype import beartype
 
 from ..client import BitrixClient
+from ..utils import parse_json_safe, build_error_response, build_success_response
 
 logger = logging.getLogger(__name__)
 
@@ -74,29 +75,32 @@ class TaskTools:
             JSON string with creation result
         """
         try:
+            # Validate fields is not empty
+            if not fields:
+                return build_error_response("fields parameter is required")
+
             # Parse fields
-            fields_dict = json.loads(fields)
+            fields_dict, error = parse_json_safe(fields, "fields")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
 
             # Create task
-            result = await self.client.client.call(
-                "tasks.task.add", {"fields": fields_dict}
-            )
+            result = await self.client.create_task(fields_dict)
 
-            return json.dumps(
+            task_id = result.get("result") if result else None
+
+            return build_success_response(
                 {
                     "success": True,
-                    "task_id": (
-                        result[0].get("result", {}).get("task", {}).get("id")
-                        if result
-                        else None
-                    ),
+                    "task_id": task_id,
                     "message": "Task created successfully",
                 }
             )
 
         except Exception as e:
             logger.error(f"Error creating task: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def update_task(self, task_id: str, fields: str) -> str:
@@ -111,17 +115,20 @@ class TaskTools:
             JSON string with update result
         """
         try:
+            # Validate fields is not empty
+            if not fields:
+                return build_error_response("fields parameter is required")
+
             # Parse fields
-            fields_dict = json.loads(fields)
+            fields_dict, error = parse_json_safe(fields, "fields")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
 
             # Update task
-            result = await self.client.client.call(
-                "tasks.task.update", {"taskId": task_id, "fields": fields_dict}
-            )
+            success = await self.client.update_task(task_id, fields_dict)
 
-            success = bool(result[0]) if result else False
-
-            return json.dumps(
+            return build_success_response(
                 {
                     "success": success,
                     "task_id": task_id,
@@ -135,7 +142,7 @@ class TaskTools:
 
         except Exception as e:
             logger.error(f"Error updating task {task_id}: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def complete_task(self, task_id: str) -> str:
@@ -150,11 +157,7 @@ class TaskTools:
         """
         try:
             # Complete task
-            result = await self.client.client.call(
-                "tasks.task.complete", {"taskId": task_id}
-            )
-
-            success = bool(result[0]) if result else False
+            success = await self.client.complete_task(task_id)
 
             return json.dumps(
                 {
@@ -165,7 +168,9 @@ class TaskTools:
                         if success
                         else "Failed to complete task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:
@@ -185,7 +190,7 @@ class TaskTools:
         """
         try:
             # Get task
-            task = self.client.get_task(task_id)
+            task = await self.client.get_task(task_id)
 
             if task:
                 return json.dumps(
@@ -193,7 +198,8 @@ class TaskTools:
                 )
             else:
                 return json.dumps(
-                    {"success": False, "error": f"Task with ID {task_id} not found"}
+                    {"success": False, "error": f"Task with ID {task_id} not found"},
+                    ensure_ascii=False,
                 )
 
         except Exception as e:
@@ -213,9 +219,7 @@ class TaskTools:
         """
         try:
             # Approve task
-            result = self.client.client.call("tasks.task.approve", {"taskId": task_id})
-
-            success = bool(result[0]) if result else False
+            success = await self.client.approve_task(task_id)
 
             return json.dumps(
                 {
@@ -226,7 +230,9 @@ class TaskTools:
                         if success
                         else "Failed to approve task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:
@@ -246,9 +252,7 @@ class TaskTools:
         """
         try:
             # Start task
-            result = self.client.client.call("tasks.task.start", {"taskId": task_id})
-
-            success = bool(result[0]) if result else False
+            success = await self.client.start_task(task_id)
 
             return json.dumps(
                 {
@@ -259,7 +263,9 @@ class TaskTools:
                         if success
                         else "Failed to start task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:
@@ -280,11 +286,7 @@ class TaskTools:
         """
         try:
             # Delegate task
-            result = self.client.client.call(
-                "tasks.task.delegate", {"taskId": task_id, "userId": user_id}
-            )
-
-            success = bool(result[0]) if result else False
+            success = await self.client.delegate_task(task_id, user_id)
 
             return json.dumps(
                 {
@@ -296,7 +298,9 @@ class TaskTools:
                         if success
                         else "Failed to delegate task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:
@@ -316,9 +320,7 @@ class TaskTools:
         """
         try:
             # Renew task
-            result = self.client.client.call("tasks.task.renew", {"taskId": task_id})
-
-            success = bool(result[0]) if result else False
+            success = await self.client.renew_task(task_id)
 
             return json.dumps(
                 {
@@ -329,7 +331,9 @@ class TaskTools:
                         if success
                         else "Failed to renew task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:
@@ -349,11 +353,7 @@ class TaskTools:
         """
         try:
             # Start watching task
-            result = self.client.client.call(
-                "tasks.task.startwatch", {"taskId": task_id}
-            )
-
-            success = bool(result[0]) if result else False
+            success = await self.client.start_watching_task(task_id)
 
             return json.dumps(
                 {
@@ -364,7 +364,9 @@ class TaskTools:
                         if success
                         else "Failed to start watching task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:
@@ -384,11 +386,7 @@ class TaskTools:
         """
         try:
             # Disapprove task
-            result = self.client.client.call(
-                "tasks.task.disapprove", {"taskId": task_id}
-            )
-
-            success = bool(result[0]) if result else False
+            success = await self.client.disapprove_task(task_id)
 
             return json.dumps(
                 {
@@ -399,7 +397,9 @@ class TaskTools:
                         if success
                         else "Failed to disapprove task"
                     ),
-                }
+                },
+                ensure_ascii=False,
+                indent=2,
             )
 
         except Exception as e:

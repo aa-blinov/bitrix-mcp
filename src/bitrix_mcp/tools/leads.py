@@ -7,6 +7,7 @@ from typing import Any, Optional
 from beartype import beartype
 
 from ..client import BitrixClient
+from ..utils import parse_json_safe, build_success_response, build_error_response
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,9 @@ class LeadTools:
 
             return json.dumps(result, ensure_ascii=False, indent=2)
 
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in filter_params: {e}")
+            return json.dumps({"success": False, "error": f"Invalid JSON: {str(e)}"})
         except Exception as e:
             logger.error(f"Error getting leads: {e}")
             return json.dumps({"success": False, "error": str(e)})
@@ -74,13 +78,20 @@ class LeadTools:
             JSON string with creation result
         """
         try:
+            # Validate fields is not empty
+            if not fields:
+                return build_error_response("fields parameter is required")
+
             # Parse fields
-            fields_dict = json.loads(fields)
+            fields_dict, error = parse_json_safe(fields, "fields")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
 
             # Create lead
             result = await self.client.create_lead(fields_dict)
 
-            return json.dumps(
+            return build_success_response(
                 {
                     "success": True,
                     "lead_id": result.get("result"),
@@ -90,7 +101,7 @@ class LeadTools:
 
         except Exception as e:
             logger.error(f"Error creating lead: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def update_lead(self, lead_id: str, fields: str) -> str:
@@ -105,13 +116,20 @@ class LeadTools:
             JSON string with update result
         """
         try:
+            # Validate fields is not empty
+            if not fields:
+                return build_error_response("fields parameter is required")
+
             # Parse fields
-            fields_dict = json.loads(fields)
+            fields_dict, error = parse_json_safe(fields, "fields")
+            if error:
+                logger.error(error)
+                return build_error_response(error)
 
             # Update lead
             success = await self.client.update_lead(lead_id, fields_dict)
 
-            return json.dumps(
+            return build_success_response(
                 {
                     "success": success,
                     "lead_id": lead_id,
@@ -125,7 +143,7 @@ class LeadTools:
 
         except Exception as e:
             logger.error(f"Error updating lead {lead_id}: {e}")
-            return json.dumps({"success": False, "error": str(e)})
+            return build_error_response(str(e))
 
     @beartype
     async def get_lead(self, lead_id: str) -> str:

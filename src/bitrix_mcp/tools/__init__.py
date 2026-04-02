@@ -8,4 +8,12 @@ from .tasks import TaskTools
 from .calendar import CalendarTools
 from .projects import ProjectTools
 
-__all__ = ["LeadTools", "DealTools", "ContactTools", "CompanyTools", "TaskTools", "CalendarTools", "ProjectTools"]
+__all__ = [
+    "LeadTools",
+    "DealTools",
+    "ContactTools",
+    "CompanyTools",
+    "TaskTools",
+    "CalendarTools",
+    "ProjectTools",
+]

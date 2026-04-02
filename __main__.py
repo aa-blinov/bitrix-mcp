@@ -8,7 +8,7 @@ from pathlib import Path
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
-from bitrix_mcp.server import main
+from bitrix_mcp.server import main  # noqa: E402
 
 if __name__ == "__main__":
     asyncio.run(main())
