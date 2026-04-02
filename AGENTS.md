@@ -33,14 +33,14 @@ tests/unit/  # 111 tests (17 per module)
 
 ## Development
 
-| Task | Command |
-|------|---------|
-| Run tests | `pytest tests/unit/ -v` |
-| Check lint | `ruff check src/` |
-| Format code | `ruff format src/` |
-| Type checking | `mypy src/bitrix_mcp --config-file=mypy.ini` |
-| All checks | `ruff check . && ruff format . --check && mypy src/bitrix_mcp && pytest -q` |
-| Real API test | `python test_real_api.py` |
+| Task          | Command                                                                     |
+| ------------- | --------------------------------------------------------------------------- |
+| Run tests     | `pytest tests/unit/ -v`                                                     |
+| Check lint    | `ruff check src/`                                                           |
+| Format code   | `ruff format src/`                                                          |
+| Type checking | `mypy src/bitrix_mcp --config-file=mypy.ini`                                |
+| All checks    | `ruff check . && ruff format . --check && mypy src/bitrix_mcp && pytest -q` |
+| Real API test | `python test_real_api.py`                                                   |
 
 ## Architecture
 
@@ -53,7 +53,7 @@ async with get_bitrix_client(config) as client:
     task = await client.get_task(id)
     await client.update_task(id, fields)
     await client.complete_task(id)
-    
+
     # CRM (leads, deals, contacts, companies)
     leads = await client.get_leads(filter)
     deal = await client.create_deal(fields)
@@ -94,6 +94,7 @@ MCP_PORT=3000
 ```
 
 ### mypy.ini (type checking)
+
 ```ini
 [mypy]
 python_version = 3.12
@@ -101,8 +102,11 @@ ignore_missing_imports = True
 ```
 
 ### pytest.ini
+
 ```ini
 [pytest]
+asyncio_mode = auto
+asyncio_default_fixture_loop_scope = function
 markers = integration: marks integration tests
 ```
 
@@ -110,10 +114,10 @@ markers = integration: marks integration tests
 
 ### GitHub Actions (automatic)
 
-| Workflow | Trigger | Action |
-|----------|---------|--------|
-| `tests.yml` | push, PR | 111 unit tests on Python 3.12 |
-| `code-quality.yml` | push, PR | ruff lint/format + mypy |
+| Workflow           | Trigger  | Action                        |
+| ------------------ | -------- | ----------------------------- |
+| `tests.yml`        | push, PR | 111 unit tests on Python 3.12 |
+| `code-quality.yml` | push, PR | ruff lint/format + mypy       |
 
 Integration tests **not in CI** (require real API).
 
@@ -130,7 +134,7 @@ from ..utils import parse_json_safe, build_success_response, build_error_respons
 class ItemTools:
     def __init__(self, client: BitrixClient):
         self.client = client
-    
+
     @beartype
     async def create_item(self, fields: str) -> str:
         parsed, error = parse_json_safe(fields, "fields")
@@ -184,13 +188,13 @@ docker run -e BITRIX24_WEBHOOK=YOUR_WEBHOOK bitrix-mcp
 
 ## Troubleshooting
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| 401 Unauthorized | Webhook no permissions | Enable methods in Bitrix24 settings |
-| ModuleNotFoundError | Package not installed | `pip install -e .` or `PYTHONPATH=src pytest` |
-| mypy errors | Type checking | Check `mypy.ini` config |
-| Tests fail locally | Different Python version | Use Python 3.12+ |
-| Invalid JSON error | JSON error | Check syntax and escaping |
+| Error               | Cause                    | Solution                                      |
+| ------------------- | ------------------------ | --------------------------------------------- |
+| 401 Unauthorized    | Webhook no permissions   | Enable methods in Bitrix24 settings           |
+| ModuleNotFoundError | Package not installed    | `pip install -e .` or `PYTHONPATH=src pytest` |
+| mypy errors         | Type checking            | Check `mypy.ini` config                       |
+| Tests fail locally  | Different Python version | Use Python 3.12+                              |
+| Invalid JSON error  | JSON error               | Check syntax and escaping                     |
 
 ## Documentation
 
