@@ -1,208 +1,136 @@
-# Bitrix24 MCP Server - Development Guide
+# AGENTS.md — agent context for `bitrix-mcp`
 
-Quick reference for developing and deploying the Bitrix24 MCP Server.
+A Python server that puts 50 Bitrix24 operations behind the Model Context Protocol,
+so an MCP client can drive a Bitrix24 portal from a conversation. It reaches the
+portal over the REST API through `fast-bitrix24`, holds one connection for the life
+of the process, and speaks to the client over stdio.
 
-## Quick Start
+This file is what you need to work on the project without reading all of it. The
+repository is small, and the traps below carry most of the cost: each one costs an
+hour the first time, and each was checked against the code rather than guessed.
 
-```bash
-git clone https://github.com/your-org/bitrix-mcp.git && cd bitrix-mcp
-python -m venv .venv && source .venv/bin/activate  # Win: .venv\Scripts\Activate
-pip install -r requirements.txt
-cp .env.example .env  # Set BITRIX24_WEBHOOK
-pytest tests/unit/ -q
-```
-
-## Project Structure
-
-```
-src/bitrix_mcp/
-├── client.py          # Wrapper for fast-bitrix24
-├── server.py          # MCP server
-├── config.py          # Configuration
-├── utils.py           # JSON validation, response builders
-└── tools/             # MCP tools
-    ├── tasks.py       # TaskTools
-    ├── leads.py       # LeadTools
-    ├── deals.py       # DealTools
-    ├── contacts.py    # ContactTools
-    ├── companies.py   # CompanyTools
-    ├── projects.py    # ProjectTools
-    └── calendar.py    # CalendarTools
-tests/unit/  # 111 tests (17 per module)
-```
-
-## Development
-
-| Task          | Command                                                                     |
-| ------------- | --------------------------------------------------------------------------- |
-| Run tests     | `pytest tests/unit/ -v`                                                     |
-| Check lint    | `ruff check src/`                                                           |
-| Format code   | `ruff format src/`                                                          |
-| Type checking | `mypy src/bitrix_mcp --config-file=mypy.ini`                                |
-| All checks    | `ruff check . && ruff format . --check && mypy src/bitrix_mcp && pytest -q` |
-| Real API test | `python test_real_api.py`                                                   |
-
-## Architecture
-
-### BitrixClient API
-
-```python
-async with get_bitrix_client(config) as client:
-    # Tasks
-    task = await client.create_task({"TITLE": "..."})
-    task = await client.get_task(id)
-    await client.update_task(id, fields)
-    await client.complete_task(id)
-
-    # CRM (leads, deals, contacts, companies)
-    leads = await client.get_leads(filter)
-    deal = await client.create_deal(fields)
-```
-
-### MCP Tools Pattern
-
-All tools follow the same pattern:
-
-```python
-@beartype
-async def method(self, param: str) -> str:
-    parsed, error = parse_json_safe(param, "field_name")
-    if error:
-        return build_error_response(error)
-    result = await self.client.method(parsed)
-    return build_success_response(result)
-```
-
-### Response format
-
-```json
-// Success
-{"success": true, "data": {...}}
-
-// Error
-{"success": false, "error": "Description"}
-```
-
-## Configuration
-
-### .env
-
-```env
-BITRIX24_WEBHOOK=https://instance.bitrix24.ru/rest/ID/TOKEN/
-MCP_HOST=localhost
-MCP_PORT=3000
-```
-
-### mypy.ini (type checking)
-
-```ini
-[mypy]
-python_version = 3.12
-ignore_missing_imports = True
-```
-
-### pytest.ini
-
-```ini
-[pytest]
-asyncio_mode = auto
-asyncio_default_fixture_loop_scope = function
-markers = integration: marks integration tests
-```
-
-## CI/CD
-
-### GitHub Actions (automatic)
-
-| Workflow           | Trigger  | Action                        |
-| ------------------ | -------- | ----------------------------- |
-| `tests.yml`        | push, PR | 111 unit tests on Python 3.12 |
-| `code-quality.yml` | push, PR | ruff lint/format + mypy       |
-
-Integration tests **not in CI** (require real API).
-
-## Adding New Features
-
-### 1. New Tool
-
-```python
-# src/bitrix_mcp/tools/item.py
-from beartype import beartype
-from ..client import BitrixClient
-from ..utils import parse_json_safe, build_success_response, build_error_response
-
-class ItemTools:
-    def __init__(self, client: BitrixClient):
-        self.client = client
-
-    @beartype
-    async def create_item(self, fields: str) -> str:
-        parsed, error = parse_json_safe(fields, "fields")
-        if error:
-            return build_error_response(error)
-        result = await self.client.create_item(parsed)
-        return build_success_response(result)
-```
-
-### 2. Client Method
-
-```python
-# src/bitrix_mcp/client.py
-@beartype
-async def create_item(self, fields: JSONDict) -> JSONDict:
-    """Create item"""
-    result = await self.client.call("item.create", fields)
-    return result if isinstance(result, dict) else {}
-```
-
-### 3. Tests
+## Run / build / test
 
 ```bash
-# tests/unit/test_item.py
-pytest tests/unit/test_item.py -v
+python3.12 -m venv .venv && source .venv/bin/activate   # 3.10 is the floor mcp sets; CI runs 3.12
+pip install -r requirements.txt "mcp<2"                  # mcp 2.x removed mcp.server.fastmcp
+pip install pytest pytest-asyncio pytest-cov ruff mypy   # the tools CI installs
+PYTHONPATH=src pytest tests/unit/ -q                     # 111 unit tests, no network
+PYTHONPATH=src pytest tests/integration/ -m integration # 1 live test, skipped without credentials
+ruff check src/ tests/                                   # lint
+ruff format src/ tests/ --check                         # format check
+mypy src/bitrix_mcp --config-file=mypy.ini               # types
+PYTHONPATH=src python -m bitrix_mcp.server               # start the server on stdio
+python test_real_api.py                                  # a live portal, prints what it finds
 ```
 
-## Performance
+There is no build step. The package is not installed and there is no
+`pyproject.toml`.
 
-- **Rate limit**: 2 requests/sec (automatic)
-- **Async**: All operations async, avoid `time.sleep()`
-- **Connection pool**: 50 connections (fast-bitrix24 default)
+## Where things live
 
-## Deployment
+| Path | What it holds |
+| --- | --- |
+| `src/bitrix_mcp/server.py` | The FastMCP server: 50 tool functions, the lifespan, the CLI. The only file that imports `mcp`. |
+| `src/bitrix_mcp/client.py` | `BitrixClient`, one method per REST call, and `get_bitrix_client`. |
+| `src/bitrix_mcp/config.py` | `BitrixConfig` and `MCPConfig`, read from the environment when the module is imported. |
+| `src/bitrix_mcp/utils.py` | `parse_json_safe`, `build_success_response`, `build_error_response`. |
+| `src/bitrix_mcp/tools/` | Seven tool classes, one per entity. Knows about Bitrix24, not about MCP. |
+| `src/bitrix_mcp/client_old.py.bak` | A dead copy of the client from before the pagination rewrite. Nothing imports it. Delete it rather than read it. |
+| `tests/unit/` | 111 tests over the tool classes, with a mocked client. |
+| `tests/integration/` | One live test, marked `integration`. |
+| `test_real_api.py` | A script that walks a live portal: finds a project, creates a task in it, updates it, then lists leads. |
+| `.env.example`, `config/example.env` | Two copies of the environment template. |
 
-### Docker
+## Traps
 
-```dockerfile
-FROM python:3.12-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["python", "-m", "bitrix_mcp.server"]
-```
+- **The package is not installed, and `src` goes on the path by hand.** There is no
+  `pyproject.toml` and no `setup.py`, so `pip install -e .` does not work and
+  `pip install -r requirements.txt` does not install `bitrix_mcp`. Three places put
+  `src` on the path: `tests/conftest.py` appends it, `__main__.py` inserts it, and CI
+  sets `PYTHONPATH=src`. Any command outside pytest needs `PYTHONPATH=src` too.
+- **`__main__.py` cannot start the server.** `main()` in `server.py` is a plain
+  function, and `__main__.py` calls `asyncio.run(main())`, which raises
+  `ValueError: a coroutine was expected, got None`. Use
+  `PYTHONPATH=src python -m bitrix_mcp.server`.
+- **Only stdio runs.** `main()` calls `mcp.run(transport=..., port=..., host=...)`,
+  and `FastMCP.run()` in mcp 1.x accepts `transport` and `mount_path` only.
+  `--transport streamable-http` and `--transport sse` both die with
+  `TypeError: FastMCP.run() got an unexpected keyword argument 'port'`.
+- **`mcp` has to stay below 2.** `requirements.txt` asks for `mcp>=1.0.0`. mcp 2.x
+  moved `FastMCP` to `mcp.server.mcpserver` and renamed it `MCPServer`, so
+  `from mcp.server.fastmcp import Context, FastMCP` raises `ModuleNotFoundError`
+  and all seven unit files fail at collection. Install `mcp<2`, and put the ceiling
+  in `requirements.txt` so the next person does not rediscover it.
+- **The MCP environment variables do nothing.** `config.py` reads `MCP_TRANSPORT`,
+  `MCP_PORT`, `MCP_HOST` and `MCP_LOG_LEVEL` into `MCPConfig`; `main()` takes the
+  transport, the port, the host and the log level from argparse and never looks at
+  them. `MCP_SERVER_VERSION` and `MCP_SERVER_DESCRIPTION` are read and then dropped,
+  because `create_server()` hands FastMCP only the name. A server started with
+  `MCP_TRANSPORT=sse` still speaks stdio. Once the HTTP transports work, FastMCP
+  reads `FASTMCP_HOST` and `FASTMCP_PORT` from its own settings, not from `MCP_HOST`
+  and `MCP_PORT`.
+- **`Get Task Fields` is registered and does not exist.** `server.py` calls
+  `app_ctx.task_tools.get_task_fields()`, and `TaskTools` has no such method, so the
+  call raises `AttributeError: 'TaskTools' object has no attribute
+  'get_task_fields'`. The lead, deal, contact and company field tools are real; only
+  the task one is missing.
+- **`limit` truncates after the fetch, it does not limit the request.** The list
+  tools call `get_all()`, which walks every page, and slice the finished list.
+  `limit=10` on a portal with 5,000 records still moves 5,000 records.
+- **`ORDER` is absent from the list tools on purpose.**
+  `fast_bitrix24.get_all()` paginates itself and refuses `start`, `limit` and
+  `order`. Every "the ORDER parameter is not supported" note in a tool description
+  comes from that.
+- **Two response shapes come out of the same client.** The task methods return a
+  dict and the CRM methods a list, so `client.py` unwraps them differently:
+  `result if isinstance(result, dict) else {}` for tasks, `result[0] if result else
+  {}` for CRM. The unit tests mock the client and never see the difference.
+- **The task id is read under two different keys.** `TaskTools.create_task` reads
+  `result.get("result")` and `test_real_api.py` reads `result.get("id")` from the
+  same value. One of them is wrong, and the mocked tests do not catch it.
+- **The tool boundary is a JSON string.** The MCP schema declares the fields as
+  strings, so `parse_json_safe` returns `(None, None)` for an empty string and
+  `(None, "Invalid JSON in ...")` for a broken one. The tools check the error, not
+  the value.
+- **The calendar creation example contradicts its own requirement.** The
+  description of `create_calendar_event` says the fields must include `NAME` and
+  `DATE_FROM`, and the example next to it uses `name`, `from` and `to`.
+  `CalendarTools.create_event` passes the parsed dict straight to
+  `calendar.event.add`, so the keys the caller picks are the keys the portal
+  receives.
+- **The type check is hollow.** `mypy.ini` sets `ignore_errors = True` for
+  `bitrix_mcp.client`, `bitrix_mcp.server` and `bitrix_mcp.tools.*`, which is every
+  module with real code in it. `mypy src/bitrix_mcp --config-file=mypy.ini` reports
+  "Success: no issues found in 13 source files"; without those three lines it
+  reports 23 errors, among them the missing `get_task_fields` and the
+  `run(port=..., host=...)` call.
+- **The lint job cannot fail the build.** Every step of
+  `.github/workflows/code-quality.yml` carries `continue-on-error: true`. With ruff
+  0.17.1, `ruff check src/ tests/` reports 173 findings, 159 of them in `src/`;
+  `ruff format src/ tests/ --check` passes.
 
-```bash
-docker build -t bitrix-mcp .
-docker run -e BITRIX24_WEBHOOK=YOUR_WEBHOOK bitrix-mcp
-```
+## Style / safety rails
 
-## Troubleshooting
+- **Every tool answers with a JSON string**, in one of two shapes:
+  `{"success": true, ...}` or `{"success": false, "error": "..."}`. The caller is an
+  assistant that cannot read a traceback, so a tool must never raise.
+- **Comments explain why, never what.**
+- **No emoji, in any file.**
+- **Do not add a dependency to `requirements.txt` without writing down why.** The
+  list is short on purpose, and the ceiling on `mcp` matters.
+- **The two environment templates have drifted.** `.env.example` names a `.ru` portal
+  and `config/example.env` names a `.com` one. Change both, or delete one.
+- **Lower the rate limit rather than raise it.** Two requests a second is the
+  default, and the velocity policy of the portal is obeyed on top of it.
+- **Do not change the shape of a tool answer.** An assistant parses it. A new key
+  is fine, a renamed one is a breaking change.
+- **The unit tests never reach the network.** The client is a `MagicMock` with
+  `AsyncMock` methods, and each test calls the tool through `asyncio.run()`. Without
+  `pytest-asyncio` pytest warns about two unknown options in `pytest.ini` and the
+  111 tests still pass.
 
-| Error               | Cause                    | Solution                                      |
-| ------------------- | ------------------------ | --------------------------------------------- |
-| 401 Unauthorized    | Webhook no permissions   | Enable methods in Bitrix24 settings           |
-| ModuleNotFoundError | Package not installed    | `pip install -e .` or `PYTHONPATH=src pytest` |
-| mypy errors         | Type checking            | Check `mypy.ini` config                       |
-| Tests fail locally  | Different Python version | Use Python 3.12+                              |
-| Invalid JSON error  | JSON error               | Check syntax and escaping                     |
+## Where the product truth lives
 
-## Documentation
-
-- [README.md](README.md) - Project overview
-- [Bitrix24 REST API](https://dev.1c-bitrix.ru/rest_help/)
-- [fast-bitrix24](https://github.com/yegorg/fast-bitrix24)
-- [MCP Spec](https://modelcontextprotocol.io/)
-
----
-
-**Version**: 3.12+ | **MCP**: 1.0.0+ | **Updated**: 03.04.2026
+`PRODUCT.md` holds it. Read it before changing the behaviour of the server, and
+write the change there when the behaviour changes.
