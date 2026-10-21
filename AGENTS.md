@@ -31,7 +31,7 @@ There is no build step. The package is not installed and there is no
 
 | Path | What it holds |
 | --- | --- |
-| `src/bitrix_mcp/server.py` | The FastMCP server: 50 tool functions, the lifespan, the CLI. The only file that imports `mcp`. |
+| `src/bitrix_mcp/server.py` | The MCPServer: 50 tool functions, the lifespan, the CLI. The only file that imports `mcp`. |
 | `src/bitrix_mcp/client.py` | `BitrixClient`, one method per REST call, and `get_bitrix_client`. |
 | `src/bitrix_mcp/config.py` | `BitrixConfig` and `MCPConfig`, read from the environment when the module is imported. |
 | `src/bitrix_mcp/utils.py` | `parse_json_safe`, `build_success_response`, `build_error_response`. |
@@ -53,21 +53,24 @@ There is no build step. The package is not installed and there is no
   function, and `__main__.py` calls `asyncio.run(main())`, which raises
   `ValueError: a coroutine was expected, got None`. Use
   `PYTHONPATH=src python -m bitrix_mcp.server`.
-- **Only stdio runs.** `main()` calls `mcp.run(transport=..., port=..., host=...)`,
-  and `FastMCP.run()` in mcp 1.x accepts `transport` and `mount_path` only.
-  `--transport streamable-http` and `--transport sse` both die with
-  `TypeError: FastMCP.run() got an unexpected keyword argument 'port'`.
-- **`mcp` has to stay below 2.** `requirements.txt` asks for `mcp>=1.0.0`. mcp 2.x
-  moved `FastMCP` to `mcp.server.mcpserver` and renamed it `MCPServer`, so
-  `from mcp.server.fastmcp import Context, FastMCP` raises `ModuleNotFoundError`
-  and all seven unit files fail at collection. Install `mcp<2`, and put the ceiling
-  in `requirements.txt` so the next person does not rediscover it.
+- **The network transports are unexercised.** `main()` calls
+  `mcp.run(transport=..., port=..., host=...)`. `MCPServer.run()` takes
+  `transport` and forwards the rest as keyword arguments, so the `TypeError`
+  that mcp 1.x raised for `--port` is gone. Nothing here has started the server
+  on `streamable-http` or `sse`, so the transports are untested rather than
+  working.
+- **The SDK is 2.x, and the import path says so.** `requirements.txt` asks for
+  `mcp>=2.3.0,<3`, and the server is a plain `MCPServer` from
+  `mcp.server.mcpserver`. The 2.x line kept `request_context` on the `Context`
+  a tool receives, which is why the subclass that used to expose it on the
+  server is gone. An import of `mcp.server.fastmcp` now fails at collection in
+  all seven unit files.
 - **The MCP environment variables do nothing.** `config.py` reads `MCP_TRANSPORT`,
   `MCP_PORT`, `MCP_HOST` and `MCP_LOG_LEVEL` into `MCPConfig`; `main()` takes the
   transport, the port, the host and the log level from argparse and never looks at
   them. `MCP_SERVER_VERSION` and `MCP_SERVER_DESCRIPTION` are read and then dropped,
-  because `create_server()` hands FastMCP only the name. A server started with
-  `MCP_TRANSPORT=sse` still speaks stdio. Once the HTTP transports work, FastMCP
+  because `create_server()` hands `MCPServer` only the name. A server started with
+  `MCP_TRANSPORT=sse` still speaks stdio. Once the HTTP transports work, `MCPServer`
   reads `FASTMCP_HOST` and `FASTMCP_PORT` from its own settings, not from `MCP_HOST`
   and `MCP_PORT`.
 - **`Get Task Fields` is registered and does not exist.** `server.py` calls

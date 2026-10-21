@@ -1,22 +1,22 @@
 # MCP Protocol Dependencies
-mcp>=1.0.0,<2
+mcp>=2.3.0,<3
 
 # Bitrix24 API Client
-fast-bitrix24>=1.5.0
+fast-bitrix24>=1.8.14
 
 # Async HTTP Client
-aiohttp>=3.8.0
+aiohttp>=3.14.5
 
 # Configuration Management
-python-dotenv>=1.0.0
+python-dotenv>=1.2.4
 
 # Type Checking and Validation
-beartype>=0.15.0
-icontract>=2.6.0
-pydantic>=2.5.0
+beartype>=0.23.1
+icontract>=2.7.3
+pydantic>=2.14.1
 
 # Progress Visualization
-tqdm>=4.64.0
+tqdm>=4.70.1
 
 # Development Dependencies
 # pytest>=7.0.0
