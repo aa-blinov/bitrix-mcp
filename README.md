@@ -17,13 +17,13 @@ over stdio and exposes 50 tools that reach the Bitrix24 REST API through
 git clone https://github.com/aa-blinov/bitrix-mcp.git
 cd bitrix-mcp
 python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt "mcp<2"
+pip install -r requirements.txt
 cp .env.example .env
 ```
 
-`requirements.txt` asks for `mcp>=1.0.0`. The 2.x line renamed `FastMCP` to
-`MCPServer` and moved it to `mcp.server.mcpserver`, so the install needs the `mcp<2`
-pin as well.
+`requirements.txt` asks for `mcp>=2.3.0,<3` and carries the whole ceiling: the
+2.x line renamed `FastMCP` to `MCPServer` and moved it to `mcp.server.mcpserver`,
+and the code imports it from there.
 
 Put the credentials of the portal in `.env`:
 
@@ -85,7 +85,7 @@ Python 3.10 or newer, which is the floor the `mcp` package sets. CI runs 3.12.
 
 ```
 MCP client
-  -> stdio transport (FastMCP)
+  -> stdio transport (MCPServer)
   -> 50 tool functions (src/bitrix_mcp/server.py)
   -> seven tool classes (src/bitrix_mcp/tools/)
   -> BitrixClient (src/bitrix_mcp/client.py)
@@ -103,7 +103,7 @@ The seven tool classes hold the entity knowledge: `LeadTools`, `DealTools`,
 response unwrapped into a dict or a list. Nothing under `tools/` knows about MCP,
 and nothing above `server.py` knows about Bitrix24.
 
-`BitrixClient` is opened once, by the FastMCP lifespan, and the seven tool objects
+`BitrixClient` is opened once, by the MCPServer lifespan, and the seven tool objects
 are put in an `AppContext`. A tool reaches that context through the request
 context; when the client does not provide one, the server keeps the context on
 itself and falls back to it.
@@ -163,7 +163,7 @@ python test_real_api.py                                   # a live portal, print
 
 | Path | What it holds |
 | --- | --- |
-| `src/bitrix_mcp/server.py` | The FastMCP server, the 50 tool functions, the lifespan, the CLI. |
+| `src/bitrix_mcp/server.py` | The MCPServer, the 50 tool functions, the lifespan, the CLI. |
 | `src/bitrix_mcp/client.py` | `BitrixClient`, one method per REST call. |
 | `src/bitrix_mcp/config.py` | `BitrixConfig` and `MCPConfig`, read from the environment. |
 | `src/bitrix_mcp/utils.py` | JSON parsing and the two response shapes. |

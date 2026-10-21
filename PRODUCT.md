@@ -85,7 +85,7 @@ Confirmed by the code:
   companies, 12 for tasks, 9 for the calendar, 9 for workgroups.
 - Two authentication routes: an incoming webhook, or an OAuth access token with the
   portal URL.
-- One connection for the life of the process, opened by the FastMCP lifespan.
+- One connection for the life of the process, opened by the MCPServer lifespan.
 - 2 requests a second, a pool of 50, the velocity policy respected, all three
   configurable.
 - Every tool answers with a JSON string: `{"success": true, ...}` or
@@ -133,7 +133,7 @@ successfully".
 ## Evidence on Hand
 
 - The code: 13 modules under `src/bitrix_mcp/`, 50 registered tools, and 111 unit
-  tests that pass on Python 3.12 with mcp 1.30.0.
+  tests that pass on Python 3.12 with mcp 2.3.0.
 - `.env.example` and `config/example.env`, two templates for the same fourteen
   variables, with a `.ru` portal in one and a `.com` portal in the other.
 - `test_real_api.py`, a script that finds a project, creates a task in it, updates
