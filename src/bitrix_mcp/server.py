@@ -6,16 +6,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import AsyncIterator, Optional, cast
 
-from mcp.server.fastmcp import Context, FastMCP
-
-
-if not hasattr(FastMCP, "request_context"):
-
-    def _legacy_request_context(self: FastMCP):
-        context = self.get_context()
-        return context.request_context
-
-    FastMCP.request_context = property(_legacy_request_context)  # type: ignore[attr-defined]
+from mcp.server.mcpserver import Context, MCPServer
 
 from .client import BitrixClient, get_bitrix_client
 from .config import get_config
@@ -47,17 +38,8 @@ class AppContext:
     project_tools: ProjectTools
 
 
-class BitrixFastMCP(FastMCP):
-    """FastMCP subclass exposing legacy request_context attribute for compatibility."""
-
-    @property
-    def request_context(self):  # type: ignore[override]
-        context = super().get_context()
-        return context.request_context
-
-
 @asynccontextmanager
-async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
+async def app_lifespan(server: MCPServer) -> AsyncIterator[AppContext]:
     """Manage application lifecycle with Bitrix24 client."""
     # Load configuration
     bitrix_config, mcp_config = get_config()
@@ -97,16 +79,15 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
             logger.info("Shutting down Bitrix24 MCP server")
 
 
-def create_server() -> FastMCP:
+def create_server() -> MCPServer:
     """Create and configure the MCP server."""
     # Load configuration
     _, mcp_config = get_config()
 
-    # Create FastMCP server
-    mcp = BitrixFastMCP(name=mcp_config.server_name, lifespan=app_lifespan)
+    mcp = MCPServer(name=mcp_config.server_name, lifespan=app_lifespan)
 
     def register_tool(title: str, description: str):
-        """Wrap FastMCP.tool with consistent title/description metadata."""
+        """Wrap MCPServer.tool with consistent title/description metadata."""
         return mcp.tool(title=title, description=description)
 
     def _get_app_context(context: Optional[Context] = None) -> AppContext:

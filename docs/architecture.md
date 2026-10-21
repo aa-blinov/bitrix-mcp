@@ -12,7 +12,7 @@ change to one layer does not reach the other two.
 
 | Module | What it is responsible for |
 | --- | --- |
-| `src/bitrix_mcp/server.py` | The FastMCP server, the 50 tool functions, the lifespan and the command line. The only module that imports `mcp`. |
+| `src/bitrix_mcp/server.py` | The MCPServer, the 50 tool functions, the lifespan and the command line. The only module that imports `mcp`. |
 | `src/bitrix_mcp/client.py` | `BitrixClient`, one method per REST call, and `get_bitrix_client`, the async context manager that opens and closes it. |
 | `src/bitrix_mcp/config.py` | `BitrixConfig` and `MCPConfig`, both built from the environment when the module is imported. |
 | `src/bitrix_mcp/utils.py` | `parse_json_safe`, `build_success_response` and `build_error_response`. The three functions that decide what an answer looks like. |
@@ -83,7 +83,7 @@ field instead of a traceback.
 
 ### One connection for the life of the process
 
-`BitrixClient` is opened once, by the FastMCP lifespan, and the same
+`BitrixClient` is opened once, by the MCPServer lifespan, and the same
 object serves every call. The rate limit of 2 requests a second and the
 pool of 50 connections are set on it when it is built.
 
@@ -122,12 +122,13 @@ context. The cost is that a tool can work with a context that belongs to
 another request, and the benefit is that the tool does not fail when the
 client is quiet.
 
-### `FastMCP` is subclassed for `request_context`
+### The server is not subclassed
 
-`server.py` defines `BitrixFastMCP`, which exposes `request_context` as a
-property, and it patches the same property onto `FastMCP` itself when the
-installed version does not have it. The patch is applied at import time,
-before `create_server` runs.
+`mcp` 2.x keeps `request_context` on the `Context` a tool receives, so the
+subclass that existed to expose it on the server has nothing left to do. The
+server is a plain `MCPServer`, and `_get_app_context` reads
+`context.request_context.lifespan_context` from the argument the framework
+passes in.
 
 ### The package is not installed
 
