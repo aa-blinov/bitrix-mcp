@@ -13,7 +13,7 @@ python-dotenv>=1.2.4
 # Type Checking and Validation
 beartype>=0.23.1
 icontract>=2.7.3
-pydantic>=2.14.1
+pydantic>=2.14.2
 
 # Progress Visualization
 tqdm>=4.70.1
